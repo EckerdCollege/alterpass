@@ -9,6 +9,7 @@ libraryDependencies ++= Seq(
   "org.http4s"      %% "http4s-blaze-server"  % Http4sVersion,
   "org.http4s"      %% "http4s-circe"         % Http4sVersion,
   "org.http4s"      %% "http4s-dsl"           % Http4sVersion,
+  "edu.eckerd"      %% "google-api-scala"     % "0.1.1",
   "ch.qos.logback"  %  "logback-classic"      % "1.2.1",
   "com.unboundid"   %  "unboundid-ldapsdk"    % "4.0.0"
 )

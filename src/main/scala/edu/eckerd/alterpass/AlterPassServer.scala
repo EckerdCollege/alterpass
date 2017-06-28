@@ -3,6 +3,7 @@ package edu.eckerd.alterpass
 import java.util.concurrent.{ExecutorService, Executors}
 
 import edu.eckerd.alterpass.http._
+import edu.eckerd.alterpass.ldap.LdapAdmin
 
 import scala.util.Properties.envOrNone
 import fs2.{Stream, Task}
@@ -16,7 +17,7 @@ object AlterPassServer extends StreamApp {
   val ip   : String           = "0.0.0.0"
   val pool : ExecutorService  = Executors.newCachedThreadPool()
 
-  override def stream(args: List[String]): Stream[Task, Nothing] =
+  override def stream(args: List[String]): Stream[Task, Nothing] = {
     BlazeBuilder
       .bindHttp(port, ip)
       .mountService(ChangePassword.service, ChangePassword.prefix)
@@ -24,4 +25,6 @@ object AlterPassServer extends StreamApp {
       .mountService(StaticSite.service)
       .withServiceExecutor(pool)
       .serve
+  }
+
 }
