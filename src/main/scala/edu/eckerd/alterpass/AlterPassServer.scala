@@ -17,8 +17,6 @@ import org.http4s.server.blaze.BlazeBuilder
 
 object AlterPassServer extends StreamApp {
 
-//  val port : Int              = envOrNone("HTTP_PORT") map (_.toInt) getOrElse 8080
-//  val ip   : String           = "0.0.0.0"
   val pool : ExecutorService  = Executors.newCachedThreadPool()
   implicit val strategy = Strategy.fromExecutionContext(scala.concurrent.ExecutionContext.global)
 
