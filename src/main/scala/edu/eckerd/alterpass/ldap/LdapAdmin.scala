@@ -59,12 +59,12 @@ class LdapAdmin(
     userDNT.flatMap{
       case Some(dn) =>
         val bindRequest = new SimpleBindRequest(dn, pass)
-        Task.delay(
+        Task(
           connectionPool
             .bindAndRevertAuthentication(bindRequest)
             .getResultCode
             .intValue()
-        )
+        ).attemptFold(e => 1, i => i)
       case None => Task(1)
     }
   }
@@ -86,6 +86,13 @@ class LdapAdmin(
       userDN => Task(userDN.map(dn => connectionPool.modify(dn, modification)))
     val result = userDNOpt.flatMap(changePassword)
     result.map(_.map(_.getResultCode.intValue).getOrElse(1))
+  }
+
+  def changeUserPassword(uid: String, oldPass: String, newPass: String): Task[Int] = {
+    checkBind(uid, oldPass).flatMap{
+      case true => setUserPassword(uid, newPass)
+      case false => Task.now(1)
+    }
   }
 
   def shutdown : Task[Unit] = Task.delay(connectionPool.close())
