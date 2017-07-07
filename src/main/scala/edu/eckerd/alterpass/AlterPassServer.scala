@@ -8,12 +8,12 @@ import edu.eckerd.alterpass.database.{OracleDB, SqlLiteDB}
 import edu.eckerd.alterpass.google.GoogleAPI
 import edu.eckerd.alterpass.http._
 import edu.eckerd.alterpass.ldap.LdapAdmin
-
-import scala.util.Properties.envOrNone
-import fs2.{Stream, Task, Strategy}
+import edu.eckerd.alterpass.models.Toolbox
+import fs2.{Strategy, Stream, Task}
 import org.http4s.util.StreamApp
 import org.http4s.server.blaze.BlazeBuilder
-
+import Configuration.loadAllFromEnv
+import edu.eckerd.alterpass.email.Emailer
 
 object AlterPassServer extends StreamApp {
 
@@ -21,24 +21,14 @@ object AlterPassServer extends StreamApp {
   implicit val strategy = Strategy.fromExecutionContext(scala.concurrent.ExecutionContext.global)
 
   override def stream(args: List[String]): Stream[Task, Nothing] = {
-    config.flatMap( c =>
-      Stream.eval(createTools(c))
-    ).flatMap( tools =>
-      Stream.eval{Task{println(tools); tools}}
-    ).flatMap(tools =>
-      tools._6
-        .mountService(ChangePassword.service, ChangePassword.prefix)
-        .mountService(ForgotPassword.service, ForgotPassword.prefix)
-        .mountService(StaticSite.service)
-        .withServiceExecutor(pool)
-        .serve
-    )
-
+    config
+      .flatMap(c => Stream.eval(createTools(c)))
+      .flatMap(constructServer)
   }
 
-  val config: Stream[Task, ApplicationConfig] = Stream.eval(Configuration.loadAllFromEnv())
+  val config: Stream[Task, ApplicationConfig] = Stream.eval(loadAllFromEnv())
 
-  def createTools(applicationConfig: ApplicationConfig): Task[(AgingFile, LdapAdmin, OracleDB, SqlLiteDB, GoogleAPI, BlazeBuilder)] = {
+  def createTools(applicationConfig: ApplicationConfig)(implicit strategy: Strategy): Task[Toolbox] = {
     val agingFile = AgingFile(applicationConfig.agingFileConfig.absolutePath)
 
     val ldapT = LdapAdmin.build(
@@ -51,14 +41,14 @@ object AlterPassServer extends StreamApp {
       applicationConfig.ldapConfig.pass
     )
     val oracleT = OracleDB.build(
-     applicationConfig.oracleConfig.host,
-     applicationConfig.oracleConfig.port,
-     applicationConfig.oracleConfig.sid,
-     applicationConfig.oracleConfig.username,
-     applicationConfig.oracleConfig.pass
+      applicationConfig.oracleConfig.host,
+      applicationConfig.oracleConfig.port,
+      applicationConfig.oracleConfig.sid,
+      applicationConfig.oracleConfig.username,
+      applicationConfig.oracleConfig.pass
     )
 
-    val sqlLite = SqlLiteDB(applicationConfig.sqlLiteConfig.absolutePath)
+    val sqlLiteT = SqlLiteDB.build(applicationConfig.sqlLiteConfig.absolutePath)
 
     val googleT = GoogleAPI.build(
       applicationConfig.googleConfig.domain,
@@ -70,22 +60,32 @@ object AlterPassServer extends StreamApp {
 
     val blazeBuilder = BlazeBuilder.bindHttp(applicationConfig.httpConfig.port, applicationConfig.httpConfig.hostname)
 
+    val email = Emailer(
+      applicationConfig.emailConfig.host,
+      applicationConfig.httpConfig.hostname,
+      applicationConfig.emailConfig.user,
+      applicationConfig.emailConfig.pass
+    )
+
     for {
       ldap <- ldapT
       oracle <- oracleT
       google <- googleT
-    } yield (agingFile, ldap, oracle, sqlLite, google, blazeBuilder)
-
-
-
+      sqlLite <- sqlLiteT
+    } yield Toolbox(agingFile, ldap, oracle, sqlLite, google, blazeBuilder, email)
 
   }
 
-//  BlazeBuilder
-//    .bindHttp(port, ip)
-//    .mountService(ChangePassword.service, ChangePassword.prefix)
-//    .mountService(ForgotPassword.service, ForgotPassword.prefix)
-//    .mountService(StaticSite.service)
-//    .withServiceExecutor(pool)
-//    .serve
+  def constructServer(toolbox: Toolbox): Stream[Task, Nothing] = {
+    val changePasswordService = http.ChangePassword(toolbox)
+    val forgotPasswordService = http.ForgotPassword(toolbox)
+    val BlazeBuilder = toolbox.blazeBuilder
+
+    BlazeBuilder
+      .mountService(changePasswordService.service, changePasswordService.prefix)
+      .mountService(forgotPasswordService.service, forgotPasswordService.prefix)
+      .mountService(StaticSite.service)
+      .withServiceExecutor(pool)
+      .serve
+  }
 }

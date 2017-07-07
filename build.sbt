@@ -23,13 +23,19 @@ libraryDependencies ++= Seq(
   "io.circe"        %% "circe-parser"         % CirceVersion,
   "org.tpolecat"    %% "doobie-core-cats"     % DoobieVersion,
   "org.tpolecat"    %% "doobie-hikari-cats"   % DoobieVersion,
+  "com.lihaoyi"     %% "scalatags"            % "0.6.5",
+  "org.xerial"      % "sqlite-jdbc"           % "3.19.3",
   "edu.eckerd"      %% "google-api-scala"     % "0.1.1",
   "ch.qos.logback"  %  "logback-classic"      % "1.2.1",
   "com.unboundid"   %  "unboundid-ldapsdk"    % "4.0.0",
+  "javax.mail"      % "javax.mail-api"        % "1.5.6",
+  "com.sun.mail"    % "javax.mail"            % "1.5.2",
   "org.specs2"      %% "specs2-core"          % "3.9.1"         % Test,
   "org.http4s"      %% "http4s-testing"       % Http4sVersion   % Test,
   "org.tpolecat"    %% "doobie-specs2-cats"   % DoobieVersion   % Test
 )
+
+unmanagedBase := baseDirectory.value / "lib"
 
 
 scalacOptions ++= Seq(

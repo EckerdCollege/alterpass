@@ -1,5 +1,6 @@
 package edu.eckerd.alterpass.models
 
+import cats.data.NonEmptyList
 import io.circe.generic.JsonCodec
 
-@JsonCodec case class ForgotPasswordReturn(username: String, emails: List[String])
+@JsonCodec case class ForgotPasswordReturn(emails: NonEmptyList[String])

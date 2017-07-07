@@ -62,6 +62,14 @@ object ConfigErrors {
     val errorType: String = "LdapConfigError"
   }
 
+  case class EmailConfigError(message: String) extends ConfigErrors {
+    val errorType: String = "EmailConfigError"
+  }
 }
+
+case class OracleError(message: String) extends AlterPassError {
+  val errorType = "Oracle Error"
+}
+
 
 case class GenericError(errorType: String, message: String) extends AlterPassError

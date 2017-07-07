@@ -4,8 +4,14 @@ import cats.Apply
 import fs2.Task
 import cats.data.{ValidatedNel, _}
 import cats.implicits._
+import edu.eckerd.alterpass.agingfile.AgingFile
+import edu.eckerd.alterpass.database.{OracleDB, SqlLiteDB}
 import edu.eckerd.alterpass.errors.ConfigErrors
+import edu.eckerd.alterpass.google.GoogleAPI
+import edu.eckerd.alterpass.ldap.LdapAdmin
+import edu.eckerd.alterpass.models.Toolbox
 import errors.ConfigErrors._
+import org.http4s.server.blaze.BlazeBuilder
 
 import scala.util.Properties.envOrNone
 import scala.util.Try
@@ -18,7 +24,8 @@ object Configuration {
                               googleConfig: GoogleConfig,
                               sqlLiteConfig: SqlLiteConfig,
                               agingFileConfig: AgingFileConfig,
-                              ldapConfig: LdapConfig
+                              ldapConfig: LdapConfig,
+                              emailConfig: EmailConfig
                               )
 
   case class HttpConfig(
@@ -50,6 +57,12 @@ object Configuration {
                        pass: String
                        )
 
+  case class EmailConfig(
+                        host: String,
+                        user: String,
+                        pass: String
+                        )
+
   case class SqlLiteConfig(absolutePath: String)
   case class AgingFileConfig(absolutePath: String)
 
@@ -68,15 +81,17 @@ object Configuration {
 
 
   def getAppConfig(f: String => Option[String]): ValidatedNel[ConfigErrors, ApplicationConfig] =
-    Apply[ValidatedNel[ConfigErrors, ?]].map6(
+    Apply[ValidatedNel[ConfigErrors, ?]].map7(
       getHttpConfig(f),
       getOracleConfig(f),
       getGoogleConfig(f),
       getSqlLiteConfig(f),
       getAgingFileConfig(f),
-      getLdapConfig(f)
+      getLdapConfig(f),
+      getEmailConfig(f)
     ) {
-      case (http, oracle, google, sqllite, aging, ldap) => ApplicationConfig(http, oracle, google, sqllite, aging, ldap)
+      case (http, oracle, google, sqllite, aging, ldap, email) =>
+        ApplicationConfig(http, oracle, google, sqllite, aging, ldap, email)
     }
 
   def getLdapConfig(f: String => Option[String]): ValidatedNel[LdapConfigError, LdapConfig] = {
@@ -112,6 +127,20 @@ object Configuration {
       Validated.fromOption(f(pathEnv), SqlliteConfigError(s"$pathEnv missing from Environment")).toValidatedNel
     ) {
       case (path) => SqlLiteConfig(path)
+    }
+  }
+
+  def getEmailConfig(f: String => Option[String]): ValidatedNel[EmailConfigError, EmailConfig] = {
+    val hostEnv = "SMTP_HOSTNAME"
+    val userEnv = "SMTP_USER"
+    val passEnv = "SMTP_PASS"
+
+    Apply[ValidatedNel[EmailConfigError, ?]].map3(
+      Validated.fromOption(f(hostEnv), EmailConfigError(s"$hostEnv missing from Environment")).toValidatedNel,
+      Validated.fromOption(f(userEnv), EmailConfigError(s"$userEnv missing from Environment")).toValidatedNel,
+      Validated.fromOption(f(passEnv), EmailConfigError(s"$passEnv missing from Environment")).toValidatedNel
+    ) {
+      case (hostname, user, pass) => EmailConfig(hostname, user, pass)
     }
   }
 
@@ -174,6 +203,8 @@ object Configuration {
 
     OracleConfigFromEnv
   }
+
+
 
 
 
