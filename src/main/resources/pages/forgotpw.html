@@ -52,7 +52,7 @@
                 </h2>
                 <hr>
                 <p>Never fear!  If you've forgotten your password, please enter your Eckerd username to continue.</p>
-                <form id="forgot" method="post" name="theform">
+                <form id="forgot" name="theform" action="">
                     <div class="row">
             
                         <div class="form-group col-lg-4">
@@ -92,35 +92,52 @@
 <!-- JavaScript -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
 <script>
-$('#forgot').submit(function(e) {
-e.preventDefault();
- var username = $('input#username').val();
+    function submitValue(username) {
+        console.log(username);
+        var json = JSON.stringify({username : username});
+        console.log(json);
 
-    if(username == ""){
-       alert("Please enter a Username");
-       $('#username').focus();
-       return false;
-    }
-    
-    if(username != '') {
-     $.ajax({
-          url: '/forgotpw',
-          type: 'POST',
-          data: {
-                username: username,
-            },
-            success: function(data) {
-            	
-            	
-                if (data.emails.length > 0) {
-                alert("Please check your e-mail for a link to change your password. \n Emails Sent To: " + data.emails);
-                } else {
-                alert("Nope");
-                }            
+        jQuery.ajax(
+            {
+                cache: false,
+                url: '/forgotpw',
+                type: 'POST',
+                data: json,
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                success: function(data) {
+
+
+                    if (data.emails.length > 0) {
+                        alert("Please check your e-mail for a link to change your password. \n Emails Sent To: " + data.emails);
+                    } else {
+                        alert("Nope");
+                    }
+                }
             }
-        });
-    } 
-}); 
+        );
+    }
+
+    $('#forgot').on('submit', function(e) {
+        e.preventDefault();
+    });
+
+    $('button').on('click', function (e) {
+        e.preventDefault();
+
+        var username = $('input#username').val();
+
+        if(username == ""){
+            alert("Please enter a Username");
+            $('#username').focus();
+            return false;
+        }
+        if(username != '') {
+            submitValue(username);
+        }
+
+
+    });
     
  </script> 
 
