@@ -12,6 +12,27 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 400;
 }
 
+#badresult {
+ font-size: 1.05em;
+  color: #ff3333;
+  font-weight: 400;
+  line-height: 1.6;
+  float: left;
+  padding: 6px;
+}
+
+
+#goodresult {
+ font-size: 1.05em;
+  color: #00cc00;
+  font-weight: 400;
+  line-height: 1.6;
+  float: left;
+  padding: 0px;
+}
+
+
+
 p {
   font-size: 1.25em;
   line-height: 1.6;
@@ -27,6 +48,8 @@ hr {
 .address-bar {
   display: none;
 }
+
+
 
 
 .navbar-brand {

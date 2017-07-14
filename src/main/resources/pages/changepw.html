@@ -49,23 +49,30 @@
                 <h2 class="intro-text text-center">Change your <strong>password</strong>
                 </h2>
                 <hr>
-                <p>Users can use this page to change their password.</p>
+                <p>Users can use this page to change their password. <br> Here are the requirements:
+                <br> • New password must be different than your current password.
+<br> • New password must be at least 8 characters long.
+<br> • New password must contain at least one letter and one number, within the first 8 characters.
+<br> • New password may not contain a single quote, double quote, or colon ( ', ", or : ). <br><br>
+</p>
                 <form role="form">
                     <div class="row">
                         <div class="form-group col-lg-4">
-                            <label>Old Password</label>
-                            <input type="text" class="form-control" required>
+                            <label>Old password</label>
+                            <input type="password" class="form-control" name="oldpassword" id="oldpassword" required>
                         </div>
                         <div class="form-group col-lg-4">
-                            <label>New Password</label>
-                            <input type="email" class="form-control">
+                            <label>New password</label>
+                            <input type="password" class="form-control" name="newpassword1" id="newpassword1" required>
                         </div>
 
 
                         <div class="form-group col-lg-4">
                             <label>Re-type new password</label>
-                            <input type="tel" class="form-control">
+                            <input type="password" class="form-control" name="newpassword2" id="newpassword2" required>
+                            <p id="validate"></p>
                         </div>
+                        
                         <div class="clearfix"></div>
                       
                         <div class="form-group col-lg-12">
@@ -91,8 +98,41 @@
     </div>
 </footer>
 
+
 <!-- JavaScript -->
-<script src="../static/js/jquery-1.10.2.js"></script>
+<!-- <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.js"></script>  -->
+<!-- <script src="http://malsup.github.com/jquery.form.js"></script>  -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+<script>
+$(document).ready(function() {
+  $("#newpassword2").keyup(validate);
+});
+
+ function Replace(id,content) { 
+                var container = document.getElementById(id);
+                container.innerHTML = content;
+            }
+
+function validate() {
+  var password1 = $("#newpassword1").val();
+  var password2 = $("#newpassword2").val();
+ 
+    if(password1 == password2) {
+       $("#validate").text("Passwords match");        
+    }
+  else if(password1==null || password1=="",password2==null || password2=="") {
+    	$("#validate").text(""); 
+    }
+    else {
+        $("#validate").text("Passwords don't match");  
+           
+    }
+    
+}
+
+</script>
+
+
 <script src="../static/js/bootstrap.js"></script>
 
 </body>

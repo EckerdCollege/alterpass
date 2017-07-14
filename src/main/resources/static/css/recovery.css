@@ -18,6 +18,26 @@ p {
   color: #000;
 }
 
+#badresult {
+ font-size: 1.05em;
+  color: #ff3333;
+  font-weight: 400;
+  line-height: 1.6;
+  float: left;
+  padding: 3px;
+}
+
+
+#goodresult {
+ font-size: 1.05em;
+  color: #00cc00;
+  font-weight: 400;
+  line-height: 1.6;
+  float: left;
+  padding: 10px;
+}
+
+
 hr {
   border-color: #999999;
   max-width: 400px;

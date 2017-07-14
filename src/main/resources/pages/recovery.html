@@ -51,7 +51,12 @@
                 <h2 class="intro-text text-center">Password <strong>recovery</strong>
                 </h2>
                 <hr>
-                <p>You can now reset your password.</p>
+                <p>You can now reset your password.  Here are the requirements:
+                <br> • New password must be different than your current password.
+<br> • New password must be at least 8 characters long.
+<br> • New password must contain at least one letter and one number, within the first 8 characters.
+<br> • New password may not contain a single quote, double quote, or colon ( ', ", or : ). <br><br>
+</p>
                 <form id="recovery" method="post" name="theform"">
                     <div class="row">
                                 <div class="form-group col-lg-4">
@@ -79,6 +84,8 @@
                             <button type="submit" class="btn btn-default">Submit</button>
                             
                         </div>
+                        <div id="goodresult"></div>
+                        <div id="badresult"></div>
                     </div>
                 </form>
             </div>
@@ -107,15 +114,20 @@ $(document).ready(function() {
   $("#newpassword2").keyup(validate);
 });
 
+ function Replace(id,content) { 
+                var container = document.getElementById(id);
+                container.innerHTML = content;
+            }
 
 function validate() {
   var password1 = $("#newpassword1").val();
   var password2 = $("#newpassword2").val();
-
-    
  
     if(password1 == password2) {
        $("#validate").text("Passwords match");        
+    }
+  else if(password1==null || password1=="",password2==null || password2=="") {
+    	$("#validate").text(""); 
     }
     else {
         $("#validate").text("Passwords don't match");  
@@ -131,34 +143,39 @@ e.preventDefault();
   var username = $('input#username').val();
   var newpass1 = $("#newpassword1").val();
   var newpass2 = $("#newpassword2").val();
-  //  var ok = true;
-//   var str  = document.URL;
-//   var n=str.split("/");
-//   var word = n[n.length - 1];
-   
+  var x = document.URL;
+  
    if (newpass1 != newpass2) {
-   alert("New passwords don't match; please make sure they match before continuing.");
+   Replace('goodresult', '')
+//    Replace('badresult', x.substr(x.lastIndexOf('/') + 1))
+   Replace('badresult', 'New passwords don\'t match; please make sure they match before continuing.')
      document.getElementById("newpassword1").style.borderColor = "#E34234";
         document.getElementById("newpassword2").style.borderColor = "#E34234";
-        //  ok = false;
          }
    
    else {
-
-     $.ajax({
+	console.log(username);
+	var json = JSON.stringify({username : username, 
+								newPass: newpass2
+								});
+								
+     jQuery.ajax(
+     	{
+     	  cache: false,
           url: document.URL,
           type: 'POST',
-          data: {
-          		username: username, 
-                newPass: newpass2
-            },
-            success: function(data) {
-            alert("Your password has successfully been reset!");
+          data: json, 
+          contentType: 'application/json; charset=utf-8',
+           dataType: 'json',
+          success: function(data) {
+            
         }
-        // return ok;
-                        
             
         });
+        Replace('badresult', '')
+        document.getElementById("newpassword1").style.borderColor = "#000000";
+        document.getElementById("newpassword2").style.borderColor = "#000000";
+   		Replace('goodresult', 'Your password has successfully been reset!')
     } 
 }); 
     
