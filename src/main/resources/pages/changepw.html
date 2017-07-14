@@ -55,30 +55,32 @@
 <br> • New password must contain at least one letter and one number, within the first 8 characters.
 <br> • New password may not contain a single quote, double quote, or colon ( ', ", or : ). <br><br>
 </p>
-                <form role="form">
+                <form id="change" method="post" name="theform"">
                     <div class="row">
-                        <div class="form-group col-lg-4">
+                     <div class="form-group col-lg-4">
+                            <label>Eckerd username</label>
+                            <input type="text" class="form-control" name="username" id="username" required> <br>
                             <label>Old password</label>
-                            <input type="password" class="form-control" name="oldpassword" id="oldpassword" required>
+                            <input type="password" class="form-control" name="oldpassword" id="oldpassword" required> <br>
                         </div>
+                        
                         <div class="form-group col-lg-4">
-                            <label>New password</label>
-                            <input type="password" class="form-control" name="newpassword1" id="newpassword1" required>
-                        </div>
-
-
-                        <div class="form-group col-lg-4">
-                            <label>Re-type new password</label>
+                           <label>New password</label>
+                            <input type="password" class="form-control" name="newpassword1" id="newpassword1" required> <br>
+                                <label>Re-type new password</label>
                             <input type="password" class="form-control" name="newpassword2" id="newpassword2" required>
                             <p id="validate"></p>
                         </div>
                         
+
                         <div class="clearfix"></div>
                       
                         <div class="form-group col-lg-12">
                             <input type="hidden" name="status" value="submitted">
                             <button type="submit" class="btn btn-default">Submit</button>
                         </div>
+                        <div id="goodresult"></div>
+                        <div id="badresult"></div>
                     </div>
                 </form>
             </div>
@@ -129,6 +131,53 @@ function validate() {
     }
     
 }
+
+$('#change').submit(function(e) {
+e.preventDefault();
+  var username = $('input#username').val();
+  var oldpass = $("#oldpassword").val();
+  var newpass1 = $("#newpassword1").val();
+  var newpass2 = $("#newpassword2").val();
+  
+   if (newpass1 != newpass2) {
+   Replace('goodresult', '')
+//    Replace('badresult', x.substr(x.lastIndexOf('/') + 1))
+   Replace('badresult', 'New passwords don\'t match; please make sure they match before continuing.')
+     document.getElementById("newpassword1").style.borderColor = "#E34234";
+        document.getElementById("newpassword2").style.borderColor = "#E34234";
+         }
+   
+   
+   
+   else {
+	console.log(username);
+	var json = JSON.stringify({username : username,
+								oldPass: oldpass,  
+								newPass: newpass2
+								});
+								
+     jQuery.ajax(
+     	{
+     	  cache: false,
+          url: document.URL,
+          type: 'POST',
+          data: json, 
+          contentType: 'application/json; charset=utf-8',
+           dataType: 'json',
+          success: function(data) {
+            
+        }
+            
+        });
+        Replace('badresult', '')
+        document.getElementById("newpassword1").style.borderColor = "#000000";
+        document.getElementById("newpassword2").style.borderColor = "#000000";
+   		Replace('goodresult', 'Your password has successfully been reset!')
+    } 
+}); 
+
+
+
 
 </script>
 
