@@ -70,6 +70,9 @@
                             <button type="submit" class="btn btn-default">Submit</button>
                             
                         </div>
+                         <div id="goodresult"></div>
+                         <div id="badresult"></div>
+                         
                     </div>
                 </form>
             </div>
@@ -92,26 +95,35 @@
 <!-- JavaScript -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
 <script>
+
+ function Replace(id,content) {
+                var container = document.getElementById(id);
+                container.innerHTML = content;
+            }
+            
+            
     function submitValue(username) {
         console.log(username);
         var json = JSON.stringify({username : username});
         console.log(json);
-
         jQuery.ajax(
             {
                 cache: false,
-                url: '/forgotpw',
+                url: document.URL,
                 type: 'POST',
                 data: json,
                 contentType: 'application/json; charset=utf-8',
                 dataType: 'json',
                 success: function(data) {
 
-
                     if (data.emails.length > 0) {
-                        alert("Please check your e-mail for a link to change your password. \n Emails Sent To: " + data.emails);
+                    	Replace('badresult', '')
+                    	Replace('goodresult', 'Please check your e-mail for a link to change your password. \n E-mails Sent To: ' + data.emails)
+                       //  alert("Please check your e-mail for a link to change your password. \n E-mails Sent To: " + data.emails);
                     } else {
-                        alert("Nope");
+                    	 Replace('goodresult', '')
+                   		 Replace('badresult', 'There was an error with your request.  Please check your username and try again.')
+                       //  alert("There was an error with your request.  Please check your username and try again.");
                     }
                 }
             }
