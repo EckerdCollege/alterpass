@@ -30,6 +30,8 @@ case class OracleDB(host: String, port: Int, sid: String, hikariTransactor: Hika
         AND
           gPersonal.GOREMAL_EMAL_CODE = 'PR'
         AND
+          gPersonal.GOREMAL_STATUS_IND = 'A'
+        AND
           gSchool.GOREMAL_EMAIL_ADDRESS= $newUserName
       """.query[String]
 
