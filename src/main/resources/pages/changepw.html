@@ -138,6 +138,15 @@ e.preventDefault();
   var oldpass = $("#oldpassword").val();
   var newpass1 = $("#newpassword1").val();
   var newpass2 = $("#newpassword2").val();
+  var passed;
+  
+  if (username.indexOf('@') > -1)
+{
+	 Replace('goodresult', '')
+  Replace('badresult', 'Please use your Eckerd username, not your e-mail address.')
+  passed = false;
+ 
+}
   
    if (newpass1 != newpass2) {
    Replace('goodresult', '')
@@ -145,11 +154,12 @@ e.preventDefault();
    Replace('badresult', 'New passwords don\'t match; please make sure they match before continuing.')
      document.getElementById("newpassword1").style.borderColor = "#E34234";
         document.getElementById("newpassword2").style.borderColor = "#E34234";
+        passed = false;
          }
    
    
    
-   else {
+   else if(newpass1 == newpass2 && passed !== false) {
 	console.log(username);
 	var json = JSON.stringify({username : username,
 								oldPass: oldpass,  
