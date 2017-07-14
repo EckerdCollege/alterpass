@@ -46,21 +46,25 @@ case class Emailer(smtpServer: String, serverHostName: String, user: String, pas
   }
 
 
-  def sendNotificationEmail(emails: NonEmptyList[String], random: String)(implicit strategy: Strategy): Task[Unit] = Task.now{
-    val message = new MimeMessage(session)
-    val from = new InternetAddress(userEmail)
-    from.setPersonal("Eckerd College ITS")
-    message.setFrom(from)
-    emails.toList.foreach( email =>
-      message.setRecipients(Message.RecipientType.TO, email)
-    )
-    message.setRecipients(Message.RecipientType.TO, emails.toList.mkString(", "))
-    message.setSubject("Eckerd College Password Reset")
-    message.setContent(htmlMessage(random), "text/html; charset=utf-8")
-//    message.setText(htmlMessage(random), "utf-8", "html")
-    message.setSentDate(new Date())
+  def sendNotificationEmail(emails: List[String], random: String)(implicit strategy: Strategy): Task[Unit] = Task.now{
+    if (emails.nonEmpty) {
+      val message = new MimeMessage(session)
+      val from = new InternetAddress(userEmail)
+      from.setPersonal("Eckerd College ITS")
+      message.setFrom(from)
+      emails.foreach(email =>
+        message.setRecipients(Message.RecipientType.TO, email)
+      )
+      message.setRecipients(Message.RecipientType.TO, emails.toList.mkString(", "))
+      message.setSubject("Eckerd College Password Reset")
+      message.setContent(htmlMessage(random), "text/html; charset=utf-8")
+      //    message.setText(htmlMessage(random), "utf-8", "html")
+      message.setSentDate(new Date())
 
-    Transport.send(message)
+      Transport.send(message)
+    } else {
+      ()
+    }
   }
 
 }

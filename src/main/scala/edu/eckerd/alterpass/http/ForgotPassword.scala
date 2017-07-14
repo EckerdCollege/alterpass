@@ -74,7 +74,13 @@ object ForgotPassword {
         for {
         personalEmails <- tools.oracleDB.getPersonalEmails(fp.username)
         rem <- tools.sqlLiteDB.removeOlder(g())
-        att <- tools.sqlLiteDB.writeConnection(fp.username, rand, g()).attempt
+        att <- {
+          if (personalEmails.nonEmpty){
+            tools.sqlLiteDB.writeConnection(fp.username, rand, g()).attempt
+          } else {
+            Task.now(0).attempt
+          }
+        }
         resp <- {
           att.fold(
             e =>

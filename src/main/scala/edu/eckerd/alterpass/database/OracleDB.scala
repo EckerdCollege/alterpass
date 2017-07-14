@@ -14,7 +14,7 @@ case class OracleDB(host: String, port: Int, sid: String, hikariTransactor: Hika
 
 
 
-  def getPersonalEmails(username: String): Task[NonEmptyList[String]] = {
+  def getPersonalEmails(username: String): Task[List[String]] = {
     val newUserName = if (username.endsWith("@eckerd.edu")) username else s"$username@eckerd.edu"
 
 
@@ -35,7 +35,7 @@ case class OracleDB(host: String, port: Int, sid: String, hikariTransactor: Hika
           gSchool.GOREMAL_EMAIL_ADDRESS= $newUserName
       """.query[String]
 
-      q.nel.transact(hikariTransactor)
+      q.list.transact(hikariTransactor)
   }
 
 
