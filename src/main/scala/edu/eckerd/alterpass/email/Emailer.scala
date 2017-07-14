@@ -33,14 +33,14 @@ case class Emailer(smtpServer: String, serverHostName: String, user: String, pas
 
   def htmlMessage(random: String): String = {
     import scalatags.Text.all._
-
+    val link = s"http://$serverHostName/forgotpw/$random"
     div(
       p("""You are receiving this message because you have requested a reset of your reset of your password from
        |the forgot password site. If you have received this message in error please disregard.""".stripMargin
       ),
       p("""Your forgot password recovery link is""".stripMargin),
       p(
-        a(s"$serverHostName/forgotpw/$random", href:=s"$serverHostName/forgotpw/$random")
+        a(link, href:=link)
       )
     ).render
   }
