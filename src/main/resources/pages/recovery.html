@@ -176,6 +176,9 @@ e.preventDefault();
         document.getElementById("newpassword1").style.borderColor = "#000000";
         document.getElementById("newpassword2").style.borderColor = "#000000";
    		Replace('goodresult', 'Your password has successfully been reset!')
+   		$( '#recovery' ).each(function(){
+    this.reset();
+});
     } 
 }); 
     
