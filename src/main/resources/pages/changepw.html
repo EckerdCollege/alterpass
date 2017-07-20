@@ -70,6 +70,8 @@
                                 <label>Re-type new password</label>
                             <input type="password" class="form-control" name="newpassword2" id="newpassword2" required>
                             <p id="validate"></p>
+                            <p id="length"></p>
+                            <p id="strength"></p>
                         </div>
                         
 
@@ -108,7 +110,15 @@
 <script>
 $(document).ready(function() {
   $("#newpassword2").keyup(validate);
+  $("#newpassword1").keyup(validate);
+  $("#newpassword2").keyup(strengthCheck);
+//   $("#newpassword1").keyup(strengthCheck)
+  $("#newpassword2").keyup(lengthCheck);
+//   $("#newpassword1").keyup(lengthCheck);
 });
+
+var l;
+var s;
 
  function Replace(id,content) { 
                 var container = document.getElementById(id);
@@ -132,6 +142,67 @@ function validate() {
     
 }
 
+function lengthCheck() {
+  var password1 = $("#newpassword1").val();
+  var password2 = $("#newpassword2").val();
+  var firstEight1 = password1.slice(0,8);
+  var firstEight2 = password2.slice(0,8);
+ 
+    if(password1.length < 8 || password2.length < 8) {
+       $("#length").text("Password is not long enough");    
+       l = false;    
+    }
+    else { $("#length").text("Length requirements met");  l = true;}
+    }
+
+function strengthCheck() {
+  var password1 = $("#newpassword1").val();
+  var password2 = $("#newpassword2").val();
+//   var letters = /^[A-Za-z]+$/;
+ //  var numbers = new RegExp('^[0-9]+$');
+//   var letterNumber = /^[0-9a-zA-Z]+$/; 
+  var firstEight1 = password1.slice(0,8);
+  var firstEight2 = password2.slice(0,8);
+ 
+ 	if (firstEight1.search(/\d/) == -1 || firstEight2.search(/\d/) == -1) {
+
+       $("#strength").text("Strength requirements not met");      
+       	s = false;  
+    }
+
+// 	if(!firstEight1.match(letters) || !firstEight2.match(letters)) {
+	else if (firstEight1.search(/[a-zA-Z]/) == -1 || firstEight2.search(/[a-zA-Z]/) == -1) {
+       $("#strength").text("Strength requirements not met");      
+       	s = false;    
+    }
+    
+    else if (password1.indexOf('\'') > -1 || password2.indexOf('\'') > -1) {
+     $("#strength").text("Strength requirements not met");    
+     s = false;  
+     }
+     
+     else if (password1.indexOf('\:') > -1 || password2.indexOf('\:') > -1) {
+     $("#strength").text("Strength requirements not met");    
+     s = false;  
+     }
+     
+     else if (password1.indexOf('\"') > -1 || password2.indexOf('\"') > -1) {
+     $("#strength").text("Strength requirements not met");  
+     s = false;    
+     }
+
+    else {
+        $("#strength").text("Strength requirements met");  
+        s = true;
+           
+    }
+    
+    //   else if(password1==null || password1=="",password2==null || password2=="") {
+//     	$("#validate").text(""); 
+//     }
+    
+}
+
 $('#change').submit(function(e) {
 e.preventDefault();
   var username = $('input#username').val();
@@ -144,6 +215,22 @@ e.preventDefault();
 {
 	 Replace('goodresult', '')
   Replace('badresult', 'Please use your Eckerd username, not your e-mail address.')
+  passed = false;
+ 
+}
+
+  if (l == false)
+{
+	 Replace('goodresult', '')
+  Replace('badresult', 'Password is not long enough.  Please use a longer password.')
+  passed = false;
+ 
+}
+
+  if (s == false)
+{
+	 Replace('goodresult', '')
+  Replace('badresult', 'Password is not strong enough.  Please use a strong password that adheres to the page\'s guidelines.')
   passed = false;
  
 }
