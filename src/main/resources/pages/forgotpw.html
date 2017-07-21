@@ -101,7 +101,8 @@
                 container.innerHTML = content;
             }
             
-            
+    
+    
     function submitValue(username) {
         console.log(username);
         var json = JSON.stringify({username : username});
@@ -144,6 +145,7 @@
             $('#username').focus();
             return false;
         }
+        
         if(username != '') {
             submitValue(username);
         }
