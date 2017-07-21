@@ -107,12 +107,31 @@ footer {
   position: fixed;
    bottom: 0;
     width: 100%;
+ 	visibility: hidden;
+    /* height: 70px; */
 }
 
+ 
 footer p {
+  margin: 0;
+  padding: 0px 0;
+}
+
+
+
+@media screen and (min-width: 40.5em) {
+  footer {
+    visibility: visible 
+ 	/* height: auto; */
+  }
+  footer p {
   margin: 0;
   padding: 50px 0;
 }
+}
+
+
+
 
 @media screen and (min-width: 768px) {
 
@@ -193,3 +212,6 @@ footer p {
         clear: both;
     }
 }
+
+
+ 
