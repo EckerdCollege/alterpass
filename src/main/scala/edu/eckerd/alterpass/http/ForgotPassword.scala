@@ -15,6 +15,7 @@ import org.http4s.headers.`Cache-Control`
 import _root_.io.circe.syntax._
 import edu.eckerd.alterpass.errors.{AlterPassError, GenericError}
 import org.http4s.server.middleware.CORS
+import org.log4s.getLogger
 
 import scala.annotation.tailrec
 
@@ -60,6 +61,8 @@ case class ForgotPassword(tools: Toolbox)(implicit strategy: Strategy) {
 
 object ForgotPassword {
 
+  private val logger = getLogger
+
   def forgotPassWordReceived(
                               tools: Toolbox,
                               request: Request,
@@ -78,7 +81,8 @@ object ForgotPassword {
           if (personalEmails.nonEmpty){
             tools.sqlLiteDB.writeConnection(fp.username, rand, g()).attempt
           } else {
-            Task.now(0).attempt
+            Task(logger.error(s"No Emails Returned for ${fp.username}")) >>
+            Task.fail(new Throwable(s"No Emails Returned for ${fp.username}")).attempt
           }
         }
         resp <- {
@@ -97,6 +101,7 @@ object ForgotPassword {
         }
         } yield resp
       } else {
+        Task(logger.error(s"Too many requests for ${fp.username} - Address : ${request.remoteAddr}")) >>
         BadRequest(GenericError("Generic", "RateLimit exceeded").asInstanceOf[AlterPassError].asJson)
       }
     } yield resp
@@ -149,8 +154,12 @@ object ForgotPassword {
         if (bool)
           resetAllPasswords(tools, fpr) >>
           tools.sqlLiteDB.removeRecoveryLink(fpr.username, url) >>
+            Task(logger.info(s"Passwords Reset for - ${fpr.username}")) >>
             Created(ForgotPasswordReceived(fpr.username).asJson)
         else
+          Task(
+            logger.error(s"Request to Reset ${fpr.username} with incorrect link. Address : ${request.remoteAddr}")
+          ) >>
           BadRequest()
       }
 
