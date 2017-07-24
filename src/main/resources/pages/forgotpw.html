@@ -115,18 +115,27 @@
                 data: json,
                 contentType: 'application/json; charset=utf-8',
                 dataType: 'json',
-                success: function(data) {
+            	statusCode: {
+    							400: function() {
+     								 Replace('goodresult', '')
+                   					 Replace('badresult', 'There was an error with your request.  Please try again later.');
+   												 },
+   	 							500: function() {
+     								 Replace('goodresult', '')
+                   					 Replace('badresult', 'There was an internal server error.  Please try again later.');
+   											 },
+  
+                				200: function(data) {
 
-                    if (data.emails.length > 0) {
-                    	Replace('badresult', '')
-                    	Replace('goodresult', 'Please check your e-mail for a link to change your password.' + '\n' + 'E-mails Sent To: ' + data.emails + '\n' + 'If you do not have access to this e-mail account, please contact ITS.')
-                       //  alert("Please check your e-mail for a link to change your password. \n E-mails Sent To: " + data.emails);
-                    } else {
-                    	 Replace('goodresult', '')
-                   		 Replace('badresult', 'There was an error with your request.  Please check your username and try again.')
-                       //  alert("There was an error with your request.  Please check your username and try again.");
-                    }
-                }
+                    				// if (data.emails.length > 0) {
+                    				Replace('badresult', '')
+                    				Replace('goodresult', 'Please check your e-mail for a link to change your password.' + '\n' + 'E-mails Sent To: ' + data.emails + '\n' + 'If you do not have access to this e-mail account, please contact ITS.')
+                       
+                   				// 	 } else {
+//                    			 		 Replace('goodresult', '')
+//                    					 Replace('badresult', 'There was an error with your request.  Please try again later.')
+                    // }
+                }}
             }
         );
     }
