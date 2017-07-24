@@ -11,8 +11,11 @@ import org.http4s.circe._
 import fs2.interop.cats._
 import cats.implicits._
 import org.http4s.server.middleware.CORS
+import org.log4s.getLogger
 
 case class ChangePassword(toolbox: Toolbox)(implicit strategy: Strategy) {
+
+  private val logger = getLogger
 
   val prefix = "/changepw"
 
@@ -43,6 +46,7 @@ case class ChangePassword(toolbox: Toolbox)(implicit strategy: Strategy) {
               resp <- Created(s"Ldap: ${setPass.toString}, Google: ${google}")
             } yield resp
           } else {
+            Task(logger.error(s"Error Incorrect Current Password : ${cpw.username}")) >>
             BadRequest(bool.toString)
           }
 
