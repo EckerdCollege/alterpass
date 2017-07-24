@@ -266,19 +266,29 @@ e.preventDefault();
           data: json, 
           contentType: 'application/json; charset=utf-8',
            dataType: 'json',
-          success: function(data) {
-            
-        }
-            
-        });
-        Replace('badresult', '')
-        document.getElementById("newpassword1").style.borderColor = "#000000";
-        document.getElementById("newpassword2").style.borderColor = "#000000";
-   		Replace('goodresult', 'Your password has successfully been reset!')
-   		$( '#recovery' ).each(function(){
-   		 this.reset();
-});
-    } 
+       statusCode: {
+    							400: function() {
+     								 Replace('goodresult', '')
+                   					 Replace('badresult', 'There was an error with your request.  Please try again later.');
+   												 },
+   	 							500: function() {
+     								 Replace('goodresult', '')
+                   					 Replace('badresult', 'There was an internal server error.  Please try again later.');
+   											     },
+  
+                				200: function(data) {
+
+                    				$( '#recovery' ).each(function(){
+  									  this.reset();
+                   				        Replace('badresult', '');
+      								  document.getElementById("newpassword1").style.borderColor = "#000000";
+   								     document.getElementById("newpassword2").style.borderColor = "#000000";
+   									Replace('goodresult', 'Your password has successfully been reset!');
+                													})
+              										  }
+       					 }
+    });	
+ 													} 
 }); 
     
  </script> 
