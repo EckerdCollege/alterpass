@@ -88,7 +88,7 @@ object ForgotPassword {
         resp <- {
           att.fold(
             e =>
-              NotFound(
+              BadRequest(
                 GenericError(
                   errorType = "Generic",
                   message = s"Problem Receiving Information - ${e.getMessage}"
