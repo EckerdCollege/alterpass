@@ -98,7 +98,7 @@
 
  function Replace(id,content) {
                 var container = document.getElementById(id);
-                container.innerHTML = content;
+                container.innerHTML = content;	
             }
             
     
@@ -119,7 +119,7 @@
 
                     if (data.emails.length > 0) {
                     	Replace('badresult', '')
-                    	Replace('goodresult', 'Please check your e-mail for a link to change your password. \n E-mails Sent To: ' + data.emails)
+                    	Replace('goodresult', 'Please check your e-mail for a link to change your password. \n E-mails Sent To: ' + data.emails + '\n If you do not have access to this e-mail account, please contact ITS.')
                        //  alert("Please check your e-mail for a link to change your password. \n E-mails Sent To: " + data.emails);
                     } else {
                     	 Replace('goodresult', '')
