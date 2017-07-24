@@ -119,7 +119,7 @@
 
                     if (data.emails.length > 0) {
                     	Replace('badresult', '')
-                    	Replace('goodresult', 'Please check your e-mail for a link to change your password. \n E-mails Sent To: ' + data.emails + '\n If you do not have access to this e-mail account, please contact ITS.')
+                    	Replace('goodresult', 'Please check your e-mail for a link to change your password. '\n' E-mails Sent To: ' + data.emails + ''\n' If you do not have access to this e-mail account, please contact ITS.')
                        //  alert("Please check your e-mail for a link to change your password. \n E-mails Sent To: " + data.emails);
                     } else {
                     	 Replace('goodresult', '')
@@ -146,7 +146,14 @@
             return false;
         }
         
-        if(username != '') {
+        else if (username.indexOf('@') > -1)
+{
+	 Replace('goodresult', '')
+  Replace('badresult', 'Please use your Eckerd username, not your e-mail address.')
+
+}
+        
+      else if(username != '' && !username.indexOf('@') > -1) {
             submitValue(username);
         }
 
