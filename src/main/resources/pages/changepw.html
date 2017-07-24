@@ -124,7 +124,7 @@ var s;
  function Replace(id,content) { 
                 var container = document.getElementById(id);
                 container.innerHTML = content;
-            }
+        					    }
 
 function validate() {
   var password1 = $("#newpassword1").val();
@@ -132,16 +132,16 @@ function validate() {
  
     if(password1 == password2) {
        $("#validate").text("Passwords match");        
-    }
+  							  }
   else if(password1==null || password1=="",password2==null || password2=="") {
     	$("#validate").text(""); 
     }
     else {
         $("#validate").text("Passwords don't match");  
            
-    }
+   		 }
     
-}
+					}
 
 function lengthCheck() {
   var password1 = $("#newpassword1").val();
@@ -243,7 +243,7 @@ e.preventDefault();
      document.getElementById("newpassword1").style.borderColor = "#E34234";
         document.getElementById("newpassword2").style.borderColor = "#E34234";
         passed = false;
-         }
+     					    }
    
    
    
@@ -252,7 +252,7 @@ e.preventDefault();
 	var json = JSON.stringify({username : username,
 								oldPass: oldpass,  
 								newPass: newpass2
-								});
+							});
 								
      jQuery.ajax(
      	{
@@ -262,20 +262,29 @@ e.preventDefault();
           data: json, 
           contentType: 'application/json; charset=utf-8',
            dataType: 'json',
-          success: function(data) {
-            
-        }
-            
-        });
-        	$( '#change' ).each(function(){
-    this.reset();
-});
-        Replace('badresult', '')
-        document.getElementById("newpassword1").style.borderColor = "#000000";
-        document.getElementById("newpassword2").style.borderColor = "#000000";
-   		Replace('goodresult', 'Your password has successfully been reset!')
-   	
-    } 
+          	statusCode: {
+    							400: function() {
+     								 Replace('goodresult', '')
+                   					 Replace('badresult', 'Bad username/password combination.  Please check your information and try again.');
+   												 },
+   	 							500: function() {
+     								 Replace('goodresult', '')
+                   					 Replace('badresult', 'There was an internal server error.  Please try again later.');
+   											     },
+  
+                				200: function(data) {
+
+                    				$( '#change' ).each(function(){
+  									  this.reset();
+                   				        Replace('badresult', '');
+      								  document.getElementById("newpassword1").style.borderColor = "#000000";
+   								     document.getElementById("newpassword2").style.borderColor = "#000000";
+   									Replace('goodresult', 'Your password has successfully been reset!');
+                													})
+              										  }
+       					 }
+    });	
+ 													} 
 }); 
 
 
