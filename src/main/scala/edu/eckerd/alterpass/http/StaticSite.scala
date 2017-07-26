@@ -10,7 +10,7 @@ import org.http4s.headers.`Cache-Control`
 object StaticSite {
 
   val supportedStaticExtensions =
-    List(".html", ".js", ".map", ".css", ".png", ".ico", ".jpg", ".jpeg")
+    List(".html", ".js", ".map", ".css", ".png", ".ico", ".jpg", ".jpeg", ".otf")
 
   val service = HttpService {
     // Does An HTML Rewrite of html files so that it does not display the .html
