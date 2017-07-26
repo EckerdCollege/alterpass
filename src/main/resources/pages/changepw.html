@@ -244,7 +244,14 @@ e.preventDefault();
         document.getElementById("newpassword2").style.borderColor = "#E34234";
         passed = false;
      					    }
-   
+     					    
+      if (newpass1 == oldpass || newpass2 == oldpass) {
+   Replace('goodresult', '')
+   Replace('badresult', 'Your new password must be different from your old password.')
+     document.getElementById("newpassword1").style.borderColor = "#E34234";
+        document.getElementById("newpassword2").style.borderColor = "#E34234";
+        passed = false;
+     					    }
    
    
    else if(newpass1 == newpass2 && passed !== false) {
