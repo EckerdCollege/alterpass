@@ -37,7 +37,7 @@ case class Emailer(smtpServer: String, serverHostName: String, user: String, pas
       |<style>
       |@font-face {
       |    font-family: din;
-      |    src: url("http://$serverHostName/static/fonts/DIN-Regular.otf");
+      |    src: url("http://$serverHostName/static/fonts/DIN-Regular.ttf");
       |}
       |@font-face {
       |    font-family: dincond-bold;
