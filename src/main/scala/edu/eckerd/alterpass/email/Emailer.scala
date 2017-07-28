@@ -5,12 +5,18 @@ import java.util.{Date, Properties}
 import javax.mail.internet.{InternetAddress, MimeMessage, MimeMultipart}
 
 import cats.data.NonEmptyList
+import edu.eckerd.alterpass.Configuration.EmailConfig
 import fs2.Task
 import fs2.Strategy
 
 
 
-case class Emailer(smtpServer: String, serverHostName: String, user: String, pass: String) {
+case class Emailer(config: EmailConfig) {
+
+  private val smtpServer = config.host
+  private val user = config.user
+  private val pass = config.pass
+  private val baseLink = config.baseLink
 
   val userEmail: String = if (user.endsWith("@eckerd.edu")) user else s"$user@eckerd.edu"
 
@@ -32,16 +38,16 @@ case class Emailer(smtpServer: String, serverHostName: String, user: String, pas
   private val session: Session = Session.getInstance(properties, authenticator)
 
   def htmlMessage(random: String): String = {
-    val link = s"http://$serverHostName/forgotpw/$random"
+    val messageLink = s"$baseLink/forgotpw/$random"
     s"""
       |<style>
       |@font-face {
       |    font-family: din;
-      |    src: url("http://$serverHostName/static/fonts/DIN-Regular.ttf");
+      |    src: url("$baseLink/static/fonts/DIN-Regular.ttf");
       |}
       |@font-face {
       |    font-family: dincond-bold;
-      |    src: url("http://$serverHostName/static/fonts/dincond-bold.otf");
+      |    src: url("$baseLink/static/fonts/dincond-bold.otf");
       |}
       |</style>
       |
@@ -53,7 +59,7 @@ case class Emailer(smtpServer: String, serverHostName: String, user: String, pas
       |<div style="background: linear-gradient(#00a3c9, #bdcc2a); width:150px; height:100vh;float:left;"></div>
       |<div style="margin: 30px auto 30px; padding: 0 0 40px;">
       |<div align="center">
-      |<img src="http://$serverHostName/static/img/eckerd_logo_email.jpg" align="center">
+      |<img src="$baseLink/static/img/eckerd_logo_email.jpg" align="center">
       |</div>
       |<h2 style="font-family:dincond-bold; color: #38939b; border-bottom: 2px solid #38939b;"> Eckerd College Password Recovery </h1>
       |
@@ -61,7 +67,7 @@ case class Emailer(smtpServer: String, serverHostName: String, user: String, pas
       |our forgot password site. If you have received this message in error, please disregard. </p>
       |
       |<p style="font-family:din;"> Your password recovery link is: </p>
-      |<p style="font-family:din;"><a href="$link">$link</a></p>
+      |<p style="font-family:din;"><a href="$messageLink">$messageLink</a></p>
       |</div>
       |
       |
@@ -79,7 +85,7 @@ case class Emailer(smtpServer: String, serverHostName: String, user: String, pas
       emails.foreach(email =>
         message.setRecipients(Message.RecipientType.TO, email)
       )
-      message.setRecipients(Message.RecipientType.TO, emails.toList.mkString(", "))
+      message.setRecipients(Message.RecipientType.TO, emails.mkString(", "))
       message.setSubject("Eckerd College Password Reset")
       message.setContent(htmlMessage(random), "text/html; charset=utf-8")
       //    message.setText(htmlMessage(random), "utf-8", "html")

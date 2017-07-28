@@ -57,12 +57,6 @@ object Configuration {
                        pass: String
                        )
 
-  case class EmailConfig(
-                        host: String,
-                        user: String,
-                        pass: String
-                        )
-
   case class SqlLiteConfig(absolutePath: String)
   case class AgingFileConfig(absolutePath: String)
 
@@ -130,17 +124,27 @@ object Configuration {
     }
   }
 
+  case class EmailConfig(
+                          host: String,
+                          user: String,
+                          pass: String,
+                          baseLink: String
+                        )
+
   def getEmailConfig(f: String => Option[String]): ValidatedNel[EmailConfigError, EmailConfig] = {
     val hostEnv = "SMTP_HOSTNAME"
     val userEnv = "SMTP_USER"
     val passEnv = "SMTP_PASS"
+    val linkEnv = "EMAIL_LINK"
 
-    Apply[ValidatedNel[EmailConfigError, ?]].map3(
+
+    Apply[ValidatedNel[EmailConfigError, ?]].map4(
       Validated.fromOption(f(hostEnv), EmailConfigError(s"$hostEnv missing from Environment")).toValidatedNel,
       Validated.fromOption(f(userEnv), EmailConfigError(s"$userEnv missing from Environment")).toValidatedNel,
-      Validated.fromOption(f(passEnv), EmailConfigError(s"$passEnv missing from Environment")).toValidatedNel
+      Validated.fromOption(f(passEnv), EmailConfigError(s"$passEnv missing from Environment")).toValidatedNel,
+      Validated.fromOption(f(linkEnv), EmailConfigError(s"$linkEnv missing from Environment")).toValidatedNel
     ) {
-      case (hostname, user, pass) => EmailConfig(hostname, user, pass)
+      case (hostname, user, pass, link) => EmailConfig(hostname, user, pass, link)
     }
   }
 

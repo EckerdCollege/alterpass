@@ -85,7 +85,6 @@ object SqlLiteDB {
     val newPath = if (path.endsWith("/")) path else s"$path/"
     val sqlliteDriver = "org.sqlite.JDBC"
     val connectionString = s"jdbc:sqlite:$newPath$dbName"
-    println(connectionString)
 
     DriverManagerTransactor[Task](
       sqlliteDriver, connectionString

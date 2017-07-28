@@ -43,11 +43,12 @@ case class ChangePassword(toolbox: Toolbox)(implicit strategy: Strategy) {
               agingFile <- toolbox.agingFile.writeUsernamePass(ldapUserName, cpw.newPass)
               setPass <- toolbox.ldapAdmin.setUserPassword(ldapUserName, cpw.newPass)
               google <- toolbox.googleAPI.changePassword(googleUserName, cpw.newPass)
-              resp <- Created(s"Ldap: ${setPass.toString}, Google: ${google}")
+              _ <- Task(logger.info(s"Password Changed for ${cpw.username}"))
+              resp <- Created()
             } yield resp
           } else {
-            Task(logger.error(s"Error Incorrect Current Password : ${cpw.username}")) >>
-            BadRequest(bool.toString)
+            Task(logger.info(s"Error Incorrect Current Password : ${cpw.username}")) >>
+            BadRequest()
           }
 
         } yield resp
