@@ -36,7 +36,7 @@ h1, h2, h3, h4, h5, h6 {
 
 @font-face {
     font-family: din;
-    src: url("../fonts/DIN-Regular.otf");
+    src: url("../fonts/DIN-Regular.ttf");
 }
 @font-face {
     font-family: dincond-bold;
