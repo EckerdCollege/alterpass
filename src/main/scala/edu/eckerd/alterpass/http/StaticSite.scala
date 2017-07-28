@@ -17,7 +17,7 @@ object StaticSite {
     // Does An HTML Rewrite of html files so that it does not display the .html
     case req @ GET -> Root =>
       StaticFile
-        .fromResource(s"/pages/ind  ex.html", Some(req))
+        .fromResource(s"/pages/index.html", Some(req))
         .map(_.putHeaders())
         .map(_.putHeaders(`Cache-Control`(NonEmptyList.of(`no-cache`()))))
         .map(Task.now)
