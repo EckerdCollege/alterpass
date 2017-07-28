@@ -20,15 +20,11 @@
 
 <body>
 
-
-
 <nav class="navbar navbar-default" role="navigation">
     <div class="container">
-   
-
-
-        <div class="collapse navbar-collapse navbar-ex1-collapse">
+        <div class="collapse navbar-collapse navbar-ex1-collapse" style="padding-bottom: 15px;">
             <ul class="nav navbar-nav">
+				<li><img src="../static/img/eckerd_logo-noBG.png"></li>
                 <li><a href="https://www.eckerd.edu/">Home</a>
                 </li>
                 <li><a href="http://its.eckerd.edu">ITS</a>
@@ -48,6 +44,7 @@
         <div class="box">
             <div class="col-lg-12">
                 <hr>
+
                 <h2 class="intro-text text-center">Forgot <strong>password</strong>
                 </h2>
                 <hr>
@@ -125,15 +122,12 @@
                    					 Replace('badresult', 'There was an internal server error.  Please try again later.');
    											 },
   
-                				200: function(data) {
+                				201: function(data) {
 
                     				// if (data.emails.length > 0) {
                     				Replace('badresult', '')
                     				Replace('goodresult', 'Please check your e-mail for a link to change your password.' + '\n' + 'E-mails Sent To: ' + data.emails + '\n' + 'If you do not have access to this e-mail account, please contact ITS.')
-                       
-                   				// 	 } else {
-//                    			 		 Replace('goodresult', '')
-//                    					 Replace('badresult', 'There was an error with your request.  Please try again later.')
+
                     // }
                 }}
             }

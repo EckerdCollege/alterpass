@@ -10,13 +10,13 @@ import org.http4s.headers.`Cache-Control`
 object StaticSite {
 
   val supportedStaticExtensions =
-    List(".html", ".js", ".map", ".css", ".png", ".ico")
+    List(".html", ".js", ".map", ".css", ".png", ".ico", ".jpg", ".otf", ".jpeg")
 
   val service = HttpService {
     // Does An HTML Rewrite of html files so that it does not display the .html
     case req @ GET -> Root =>
       StaticFile
-        .fromResource(s"/pages/index.html", Some(req))
+        .fromResource(s"/pages/ind  ex.html", Some(req))
         .map(_.putHeaders())
         .map(_.putHeaders(`Cache-Control`(NonEmptyList.of(`no-cache`()))))
         .map(Task.now)
