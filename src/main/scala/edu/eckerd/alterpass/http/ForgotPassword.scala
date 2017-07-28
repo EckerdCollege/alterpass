@@ -14,6 +14,8 @@ import org.http4s.dsl._
 import org.http4s.headers.`Cache-Control`
 import _root_.io.circe.syntax._
 import edu.eckerd.alterpass.errors.{AlterPassError, GenericError}
+import org.http4s.server.middleware.CORS
+import org.log4s.getLogger
 
 import scala.annotation.tailrec
 
@@ -23,32 +25,34 @@ case class ForgotPassword(tools: Toolbox)(implicit strategy: Strategy) {
   // Prefix Will Be Prepended to All Roots of this Service
   val prefix = "/forgotpw"
 
-  val service = HttpService {
+  val service = CORS {
+    HttpService {
 
-    // Page Displaying Form for Email Address to Reset
-    case req @ GET -> Root =>
-      StaticFile.fromResource(s"/pages/$prefix.html", Some(req))
-        .map(_.putHeaders())
-        .map(_.putHeaders(`Cache-Control`(NonEmptyList.of(`no-cache`()))))
-        .map(Task.now)
-        .getOrElse(NotFound())
+      // Page Displaying Form for Email Address to Reset
+      case req @ GET -> Root =>
+        StaticFile.fromResource(s"/pages/$prefix.html", Some(req))
+          .map(_.putHeaders())
+          .map(_.putHeaders(`Cache-Control`(NonEmptyList.of(`no-cache`()))))
+          .map(Task.now)
+          .getOrElse(NotFound())
 
-    // Post Location Taking Email Address to Have Password Reset
-    case req @ POST -> Root =>
-      forgotPassWordReceivedRandom(tools, req)
+      // Post Location Taking Email Address to Have Password Reset
+      case req @ POST -> Root =>
+        forgotPassWordReceivedRandom(tools, req)
 
-    // Returns Form Taking Username, Date of Birth, and New Password
-    case req @ GET -> Root / randomExtension =>
-      StaticFile.fromResource(s"/pages/recovery.html", Some(req))
-        .map(_.putHeaders())
-        .map(_.putHeaders(`Cache-Control`(NonEmptyList.of(`no-cache`()))))
-        .map(Task.now)
-        .getOrElse(NotFound())
+      // Returns Form Taking Username, Date of Birth, and New Password
+      case req @ GET -> Root / randomExtension =>
+        StaticFile.fromResource(s"/pages/recovery.html", Some(req))
+          .map(_.putHeaders())
+          .map(_.putHeaders(`Cache-Control`(NonEmptyList.of(`no-cache`()))))
+          .map(Task.now)
+          .getOrElse(NotFound())
 
-    // Post Location for the return page
-    case req @ POST -> Root / randomExtension =>
-      forgotPasswordRecoveryWithTime(tools, req, randomExtension)
+      // Post Location for the return page
+      case req @ POST -> Root / randomExtension =>
+        forgotPasswordRecoveryWithTime(tools, req, randomExtension)
 
+    }
   }
 
 
@@ -56,6 +60,8 @@ case class ForgotPassword(tools: Toolbox)(implicit strategy: Strategy) {
 }
 
 object ForgotPassword {
+
+  private val logger = getLogger
 
   def forgotPassWordReceived(
                               tools: Toolbox,
@@ -66,21 +72,37 @@ object ForgotPassword {
     val rand = f()
     for {
       fp <- request.as(jsonOf[ForgotPasswordReceived])
-      personalEmails <- tools.oracleDB.getPersonalEmails(fp.username)
-      att <- tools.sqlLiteDB.writeConnection(fp.username, rand, g()).attempt
-      resp <- {
-        att.fold(
-          e =>
-            NotFound(
-              GenericError(
-                errorType = "Generic",
-                message = s"Problem Receiving Information - ${e.getMessage}"
-              ).asInstanceOf[AlterPassError].asJson
-            ),
-          i =>
-            tools.email.sendNotificationEmail(personalEmails, rand) >>
-              Created(ForgotPasswordReturn(personalEmails.map(concealEmail)).asJson)
-        )
+      bool <- tools.sqlLiteDB.rateLimitCheck(fp.username, g())
+      resp <- if (bool) {
+        for {
+        personalEmails <- tools.oracleDB.getPersonalEmails(fp.username)
+        rem <- tools.sqlLiteDB.removeOlder(g())
+        att <- {
+          if (personalEmails.nonEmpty){
+            tools.sqlLiteDB.writeConnection(fp.username, rand, g()).attempt
+          } else {
+            Task(logger.error(s"No Emails Returned for ${fp.username}")) >>
+            Task.fail(new Throwable(s"No Emails Returned for ${fp.username}")).attempt
+          }
+        }
+        resp <- {
+          att.fold(
+            e =>
+              BadRequest(
+                GenericError(
+                  errorType = "Generic",
+                  message = s"Problem Receiving Information - ${e.getMessage}"
+                ).asInstanceOf[AlterPassError].asJson
+              ),
+            i =>
+              tools.email.sendNotificationEmail(personalEmails, rand) >>
+                Created(ForgotPasswordReturn(personalEmails.map(concealEmail)).asJson)
+          )
+        }
+        } yield resp
+      } else {
+        Task(logger.error(s"Too many requests for ${fp.username} - Address : ${request.remoteAddr}")) >>
+        BadRequest(GenericError("Generic", "RateLimit exceeded").asInstanceOf[AlterPassError].asJson)
       }
     } yield resp
   }
@@ -112,6 +134,12 @@ object ForgotPassword {
     forgotPassWordReceived(tools, request, f, g)
   }
 
+
+
+
+
+
+
   def forgotPasswordRecovery(
                             tools: Toolbox,
                             request: Request,
@@ -120,12 +148,18 @@ object ForgotPassword {
                             )(implicit strategy: Strategy): Task[Response] = {
     for {
       fpr <- request.as(jsonOf[ForgotPasswordRecovery])
+      rem <- tools.sqlLiteDB.removeOlder(g())
       bool <- tools.sqlLiteDB.recoveryLink(fpr.username, url, g())
       resp <- {
         if (bool)
           resetAllPasswords(tools, fpr) >>
+          tools.sqlLiteDB.removeRecoveryLink(fpr.username, url) >>
+            Task(logger.info(s"Passwords Reset for - ${fpr.username}")) >>
             Created(ForgotPasswordReceived(fpr.username).asJson)
         else
+          Task(
+            logger.error(s"Request to Reset ${fpr.username} with incorrect link. Address : ${request.remoteAddr}")
+          ) >>
           BadRequest()
       }
 

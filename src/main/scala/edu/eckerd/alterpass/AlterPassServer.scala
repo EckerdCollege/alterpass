@@ -62,7 +62,7 @@ object AlterPassServer extends StreamApp {
 
     val email = Emailer(
       applicationConfig.emailConfig.host,
-      applicationConfig.httpConfig.hostname,
+      s"${applicationConfig.httpConfig.hostname}:${applicationConfig.httpConfig.port}",
       applicationConfig.emailConfig.user,
       applicationConfig.emailConfig.pass
     )
