@@ -8,7 +8,7 @@ body {
 
 @font-face {
     font-family: din;
-    src: url("../static/fonts/DIN-Regular.otf");
+    src: url("../static/fonts/DIN-Regular.ttf");
 }
 @font-face {
     font-family: dincond-bold;
