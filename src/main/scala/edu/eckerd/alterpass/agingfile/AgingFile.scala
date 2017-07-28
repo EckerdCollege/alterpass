@@ -17,7 +17,7 @@ case class AgingFile(filePath: String) {
   }
 
   def writeUsernamePass(user: String, pass: String, sink: Sink[Task, Byte])(implicit strategy: Strategy): Task[Unit] = {
-    val combineText = s"$user;$pass\n"
+    val combineText = s"$user:$pass\n"
     Stream(combineText)
       .covary[Task]
       .through(text.utf8Encode)
