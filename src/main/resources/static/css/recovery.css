@@ -6,17 +6,47 @@ body {
   background-size: cover;
 }
 
+@font-face {
+    font-family: din;
+    src: url("../static/fonts/DIN-Regular.otf");
+}
+@font-face {
+    font-family: dincond-bold;
+    src: url("../static/fonts/dincond-bold.otf");
+}
+
 h1, h2, h3, h4, h5, h6 {
   text-transform: uppercase;
   letter-spacing: 3px;
   font-weight: 400;
 }
 
+@font-face {
+    font-family: din;
+    src: url("../fonts/DIN-Regular.otf");
+}
+@font-face {
+    font-family: dincond-bold;
+    src: url("../fonts/dincond-bold.otf");
+}
+
 p {
   font-size: 1.25em;
   line-height: 1.6;
   color: #000;
+  font-family: din;
 }
+
+label { font-family: dincond-bold;
+		font-size: 1.55em;
+		color: #38939b;
+ }
+
+button { font-family: din;
+		
+ }
+ 
+/*  li { font-family: din;} */
 
 #badresult {
  font-size: 1.05em;
