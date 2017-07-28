@@ -60,12 +60,7 @@ object AlterPassServer extends StreamApp {
 
     val blazeBuilder = BlazeBuilder.bindHttp(applicationConfig.httpConfig.port, applicationConfig.httpConfig.hostname)
 
-    val email = Emailer(
-      applicationConfig.emailConfig.host,
-      s"${applicationConfig.httpConfig.hostname}:${applicationConfig.httpConfig.port}",
-      applicationConfig.emailConfig.user,
-      applicationConfig.emailConfig.pass
-    )
+    val email = Emailer(applicationConfig.emailConfig)
 
     for {
       ldap <- ldapT

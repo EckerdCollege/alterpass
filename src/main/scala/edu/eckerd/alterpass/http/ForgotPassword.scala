@@ -63,6 +63,47 @@ object ForgotPassword {
 
   private val logger = getLogger
 
+  def concealEmail(email: String): String = {
+    def obscure(text: String) = "*" * text.length
+    val validEmail = "(.*)@(.*)".r
+    val shortMailbox = "(.{1,2})".r
+    val longMailbox = "(.)(.)(.*)".r
+
+    email match {
+      case validEmail(shortMailbox(m), domain) =>
+        s"${obscure(m)}@$domain"
+      case validEmail(longMailbox(first, second, middle), domain) =>
+        s"$first$second${obscure(middle)}@$domain"
+      case other => obscure(other)
+    }
+  }
+
+  def resetAllPasswords(tools: Toolbox, fpr: ForgotPasswordRecovery)(implicit strategy: Strategy): Task[Unit] = {
+    val ldapUserName = fpr.username.replaceAll("@eckerd.edu", "")
+    val googleUserName = if (fpr.username.endsWith("@eckerd.edu")) fpr.username else s"${fpr.username}@eckerd.edu"
+
+    val resetLDAP = tools.ldapAdmin.setUserPassword(ldapUserName, fpr.newPass)
+    val resetGoogle = tools.googleAPI.changePassword(googleUserName, fpr.newPass)
+    val writeFile = tools.agingFile.writeUsernamePass(ldapUserName, fpr.newPass)
+
+    writeFile >> resetLDAP >> resetGoogle >> Task.now(())
+  }
+
+
+  def randomStringFromCharList(length: Int, chars: Seq[Char]): String = {
+    val sb = new StringBuilder
+    for (i <- 1 to length) {
+      val randomNum = scala.util.Random.nextInt(chars.length)
+      sb.append(chars(randomNum))
+    }
+    sb.toString
+  }
+
+  def randomAlphaNumeric(length: Int): String = {
+    val chars = ('a' to 'z') ++ ('A' to 'Z') ++ ('1' to '9')
+    randomStringFromCharList(length, chars)
+  }
+
   def forgotPassWordReceived(
                               tools: Toolbox,
                               request: Request,
@@ -77,51 +118,35 @@ object ForgotPassword {
         for {
         personalEmails <- tools.oracleDB.getPersonalEmails(fp.username)
         rem <- tools.sqlLiteDB.removeOlder(g())
-        att <- {
+        writeDbAtt <- {
           if (personalEmails.nonEmpty){
             tools.sqlLiteDB.writeConnection(fp.username, rand, g()).attempt
           } else {
-            Task(logger.error(s"No Emails Returned for ${fp.username}")) >>
             Task.fail(new Throwable(s"No Emails Returned for ${fp.username}")).attempt
           }
         }
+        sendEmailAtt <- writeDbAtt.fold( e => Task.fail(e), _ => tools.email.sendNotificationEmail(personalEmails, rand)).attempt
         resp <- {
-          att.fold(
+          sendEmailAtt.fold(
             e =>
+              Task(logger.info(e.getMessage)) >>
               BadRequest(
                 GenericError(
                   errorType = "Generic",
                   message = s"Problem Receiving Information - ${e.getMessage}"
                 ).asInstanceOf[AlterPassError].asJson
               ),
-            i =>
-              tools.email.sendNotificationEmail(personalEmails, rand) >>
+            _ =>
+              Task(logger.info(s"Forgot Password Link Written for ${fp.username} - Sent To: $personalEmails")) >>
                 Created(ForgotPasswordReturn(personalEmails.map(concealEmail)).asJson)
           )
         }
         } yield resp
       } else {
-        Task(logger.error(s"Too many requests for ${fp.username} - Address : ${request.remoteAddr}")) >>
+        Task(logger.info(s"Too many requests for ${fp.username} - Address : ${request.remoteAddr}")) >>
         BadRequest(GenericError("Generic", "RateLimit exceeded").asInstanceOf[AlterPassError].asJson)
       }
     } yield resp
-  }
-
-  def concealEmail(email: String): String = {
-    def obscure(text: String) = "*" * text.length
-    val validEmail = "(.*)@(.*)".r
-    val shortMailbox = "(.{1,2})".r
-    val longMailbox = "(.)(.)(.*)".r
-
-    email match {
-      case validEmail(shortMailbox(m), domain) =>
-        s"${obscure(m)}@$domain"
-      case validEmail(longMailbox(first, second, middle), domain) =>
-        s"$first$second${obscure(middle)}@$domain"
-      case other => obscure(other)
-    }
-
-
   }
 
   def forgotPassWordReceivedRandom(
@@ -133,10 +158,6 @@ object ForgotPassword {
 
     forgotPassWordReceived(tools, request, f, g)
   }
-
-
-
-
 
 
 
@@ -166,18 +187,6 @@ object ForgotPassword {
     } yield resp
   }
 
-  def resetAllPasswords(tools: Toolbox, fpr: ForgotPasswordRecovery)(implicit strategy: Strategy): Task[Unit] = {
-    val ldapUserName = fpr.username.replaceAll("@eckerd.edu", "")
-    val googleUserName = if (fpr.username.endsWith("@eckerd.edu")) fpr.username else s"${fpr.username}@eckerd.edu"
-
-    val resetLDAP = tools.ldapAdmin.setUserPassword(ldapUserName, fpr.newPass)
-    val resetGoogle = tools.googleAPI.changePassword(googleUserName, fpr.newPass)
-    val writeFile = tools.agingFile.writeUsernamePass(ldapUserName, fpr.newPass)
-
-    writeFile >> resetLDAP >> resetGoogle >> Task.now(())
-  }
-
-
   def forgotPasswordRecoveryWithTime(
                                       tools: Toolbox,
                                       request: Request,
@@ -187,26 +196,4 @@ object ForgotPassword {
     val g = () => Instant.now().getEpochSecond
     forgotPasswordRecovery(tools, request, url, g)
   }
-
-
-  def randomStringFromCharList(length: Int, chars: Seq[Char]): String = {
-    val sb = new StringBuilder
-    for (i <- 1 to length) {
-      val randomNum = scala.util.Random.nextInt(chars.length)
-      sb.append(chars(randomNum))
-    }
-    sb.toString
-  }
-
-  def randomAlphaNumeric(length: Int): String = {
-    val chars = ('a' to 'z') ++ ('A' to 'Z') ++ ('1' to '9')
-    randomStringFromCharList(length, chars)
-  }
-
-
-
-
-
-
-
 }
