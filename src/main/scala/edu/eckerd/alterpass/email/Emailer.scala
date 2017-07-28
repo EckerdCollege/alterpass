@@ -61,7 +61,7 @@ case class Emailer(config: EmailConfig) {
       |<div align="center">
       |<img src="$baseLink/static/img/eckerd_logo_email.jpg" align="center">
       |</div>
-      |<h2 style="font-family:dincond-bold; color: #38939b; border-bottom: 2px solid #38939b;"> Eckerd College Password Recovery </h1>
+      |<h2 style="font-family:dincond-bold; color: #38939b; border-bottom: 2px solid #38939b;"> Eckerd College Password Recovery </h2>
       |
       |<p style="font-family:din;"> You are receiving this message because you have requested a reset of your Eckerd College password from
       |our forgot password site. If you have received this message in error, please disregard. </p>
