@@ -18,22 +18,17 @@
 
 <body>
 
-
-
 <nav class="navbar navbar-default" role="navigation">
     <div class="container">
-   
-
-
-        <div class="collapse navbar-collapse navbar-ex1-collapse" style="padding-bottom:15px;">
-            <ul class="nav navbar-nav">
-                <li><img src="../static/img/eckerd_logo-noBG.png"></li>
-                <li><a href="https://www.eckerd.edu/">Home</a>
-                </li>
-                <li><a href="http://its.eckerd.edu">ITS</a>
-                </li>
-
+        <div class="collapse navbar-collapse navbar-ex1-collapse">
+            <ul class="nav navbar-nav navbar-left">
+				<li><a href="https://www.eckerd.edu"><img src="../static/img/EC-GulfCoast.png"></a></li>
+				<!-- <li><img src="../static/img/eckerd_logo-noBG.png"></li> -->
             </ul>
+             <ul class="nav navbar-nav navbar-right">
+               <li style=""><a href="http://its.eckerd.edu">ITS</a></li>
+                <li style=""><a href="https://www.eckerd.edu/my/" style="">myEckerd</a></li>
+                </ul>
         </div>
         <!-- /.navbar-collapse -->
     </div>
@@ -45,11 +40,11 @@
     <div class="row">
 
         <div class="box">
-            <div class="col-lg-12">
-                <hr>
-                <h2 class="intro-text text-center">Change your <strong>password</strong>
+            <div class="col-lg-12" style="z-index : 1;">
+                <hr align="left">
+                <h2 class="intro-text text-left"style="color:#38939b">Change your <strong>password</strong>
                 </h2>
-                <hr>
+                <hr align="left">
                 <p>Users can use this page to change their password. <br> Here are the requirements:
                 <br> • New password must be different than your current password.
 <br> • New password must be at least 8 characters long.
@@ -70,6 +65,7 @@
                             <input type="password" class="form-control" name="newpassword1" id="newpassword1" required> <br>
                                 <label>Re-type new password</label>
                             <input type="password" class="form-control" name="newpassword2" id="newpassword2" required>
+                            <br>
                             <p id="validate"></p>
                             <p id="length"></p>
                             <p id="strength"></p>
@@ -80,7 +76,7 @@
                       
                         <div class="form-group col-lg-12">
                             <input type="hidden" name="status" value="submitted">
-                            <button type="submit" class="btn btn-default">Submit</button>
+                            <button type="submit" class="btn btn-default" style="font-family:din2;">Submit</button>
                         </div>
                         <div id="goodresult"></div>
                         <div id="badresult"></div>
@@ -93,6 +89,30 @@
 
 </div>
 <!-- /.container -->
+
+<footer style="height: auto; ">
+    <div class="container" style="">
+        <div class="row" style="">
+            <div class="col-lg-12 text-center">
+                <ul class="nav navbar-nav navbar-right">
+                <li style=""><a href="https://www.eckerd.edu"><img src="../static/img/eckerd_logo-noBG.png"></a></li>
+                <li style="margin-top: 65px;"><a href="https://directory.apps2.eckerd.edu/">Directory</a></li>
+                <li style="margin-top: 65px;"><a href="https://www.eckerd.edu/about/directions/"style="">Directions & Map</a></li>
+                <li style="margin-top: 65px;"><a href="https://www.eckerd.edu/accessibility/" style="">Accessibility</a></li>
+                <li style="margin-top: 65px;"><a href="https://docs.google.com/document/d/12dMViRE5e2lRsiHuTQpfFMBCDdTwFdGxUTEKRqfv4PY/edit?usp=sharing" style="">Privacy</a></li>
+                <li style="margin-top: 65px;"><a href="https://www.eckerd.edu/reportit/" style="">Report it</a></li>
+                 <div class="row">
+           		 <div class="col-lg-12 text-center" style="">
+            	<p id="footercopy">Information Technology Services <br>
+				Armacost Library<br>
+				C.W. Bill Young Technology Center<br>
+				727.864.8318</p>
+            </div></div>
+                </ul>
+            </div>
+        </div>
+    </div>
+</footer>
 
 <!-- 
 <footer>
