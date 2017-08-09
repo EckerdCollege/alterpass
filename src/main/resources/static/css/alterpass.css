@@ -8,6 +8,7 @@ body {
 
 
 
+
 #badresult {
  font-size: 1.05em;
   color: #ff3333;
@@ -43,6 +44,11 @@ h1, h2, h3, h4, h5, h6 {
     src: url("../fonts/dincond-bold.otf");
 }
 
+@font-face {
+    font-family: din2;
+    src: url("../fonts/DIN-Regular.otf");
+}
+
 p {
   font-size: 1.25em;
   line-height: 1.6;
@@ -50,9 +56,11 @@ p {
   font-family: din;
 }
 
+
+
 label { font-family: dincond-bold;
 		font-size: 1.55em;
-		color: #38939b;
+		color: #000;
  }
 
 button { font-family: din;
@@ -132,34 +140,64 @@ hr {
 footer {
   background: #fff;
   background: rgba(255,255,255,0.9);
-  position: fixed;
-   bottom: 0;
+/* position: absolute; */
+    bottom: 0;
+    /* margin-bottom: -50px;  */
+/* 
+    margin-top : 40px;
+ */
     width: 100%;
- 	visibility: hidden;
-    /* height: 70px; */
+ /* 	visibility: hidden; */
+    /* height: 250px; */
 }
 
+/* 
+.content {
+
+    height: 80vh;
+    overflow: hidden;
+}
  
+ */
 footer p {
   margin: 0;
   padding: 0px 0;
+  /* visibility: hidden; */
 }
 
+footer a {
+/*   visibility: hidden; */
+ }
+   
+
+#footercopy {
+text-align:center; font-size: 0.9em; font-family: din; text-transform: none; letter-spacing: normal;
+color: rgb(84, 88, 90);
+}
 	
+	
+
 
 @media screen and (min-width: 40.5em) {
   footer {
     visibility: visible;
  	/* height: auto; */
+ 	position: absolute;
+
   }
   footer p {
   margin: 0;
-  padding: 50px 0;
+  padding: 25px 0;
+/*   visibility: visible; */ }
+
+#footercopy {
+text-align:left;
+
 }
 
 
-
 }
+
 
 
 @media screen and (min-width: 768px) {
@@ -174,6 +212,14 @@ footer p {
   padding: 30px 0 10px;
   color: #fff;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+
+
+footer a {
+  visibility: visible;
+ 
+   
 }
 
 .top-divider {
@@ -214,14 +260,17 @@ footer p {
   background: #fff;
   background: rgba(255,255,255,0.9);
   border: none;
+  
 }
 
 .nav>li>a {
-  padding: 35px;
+ /*  padding: 35px; */
 }
 
 .navbar-nav>li>a {
-  line-height: normal;
+  line-height: 2;
+ 
+   
 }
 
 .navbar-nav {

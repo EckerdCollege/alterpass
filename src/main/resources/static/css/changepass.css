@@ -21,6 +21,11 @@ h1, h2, h3, h4, h5, h6 {
     src: url("../fonts/dincond-bold.otf");
 }
 
+@font-face {
+    font-family: din2;
+    src: url("../fonts/DIN-Regular.otf");
+}
+
 p {
   font-size: 1.25em;
   line-height: 1.6;
@@ -30,12 +35,19 @@ p {
 
 label { font-family: dincond-bold;
 		font-size: 1.55em;
-		color: #38939b;
+		color: #000;
  }
 
 button { font-family: din;
 		
  }
+ 
+ #footercopy {
+text-align:center; font-size: 0.9em; font-family: din; text-transform: none; letter-spacing: normal;
+color: rgb(84, 88, 90);
+visibility: visible;
+}
+	
 
 hr {
   border-color: #999999;
@@ -70,12 +82,15 @@ hr {
   text-transform: uppercase;
   letter-spacing: 2px;
   font-weight: 900;
+  visibility: visible;
+  
 }
 
 .navbar-nav {
   text-transform: uppercase;
   letter-spacing: 3px;
   font-weight: 400;
+  visibility: visible;
 }
 
 .img-full {
@@ -124,11 +139,16 @@ hr {
 footer {
   background: #fff;
   background: rgba(255,255,255,0.9);
-  position: fixed;
-   bottom: 0;
+/* position: absolute; */
+    bottom: 0;
+    /* margin-bottom: -50px;  */
+/* 
+    margin-top : 40px;
+ */
     width: 100%;
- 	visibility: hidden;
-    /* height: 70px; */
+ /* 	visibility: hidden; */
+    /* height: 250px; */
+     visibility: visible;
 }
 
  
@@ -141,13 +161,22 @@ footer p {
 
 @media screen and (min-width: 40.5em) {
   footer {
-    visibility: visible 
+    visibility: visible;
  	/* height: auto; */
+ 	position: absolute;
+
   }
   footer p {
   margin: 0;
-  padding: 50px 0;
+  padding: 25px 0;
+/*   visibility: visible; */ }
+
+#footercopy {
+text-align:left;
+
 }
+
+
 }
 
 
@@ -205,14 +234,17 @@ footer p {
   background: #fff;
   background: rgba(255,255,255,0.9);
   border: none;
+  
 }
 
 .nav>li>a {
-  padding: 35px;
+ /*  padding: 35px; */
 }
 
 .navbar-nav>li>a {
-  line-height: normal;
+  line-height: 2;
+ 
+   
 }
 
 .navbar-nav {

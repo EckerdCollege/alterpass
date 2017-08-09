@@ -288,7 +288,7 @@ textarea {
   line-height: inherit;
 }
 a {
-  color: #428bca;
+  color: #777;
   text-decoration: none;
 }
 a:hover,
@@ -1987,6 +1987,7 @@ select[multiple].input-lg {
 }
 .btn {
   display: inline-block;
+  text: white;
   padding: 6px 12px;
   margin-bottom: 0;
   font-size: 14px;
@@ -2033,9 +2034,13 @@ fieldset[disabled] .btn {
   opacity: .65;
 }
 .btn-default {
-  color: #333;
-  background-color: #fff;
+  color: #FFF;
+  background-color: #38939b;
   border-color: #ccc;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  
 }
 .btn-default:hover,
 .btn-default:focus,
