@@ -83,10 +83,10 @@
                             <button type="submit" class="btn btn-default">Submit</button>
                             
                         </div>
-                        <div id="goodresult"></div>
-                        <div id="badresult"></div>
                     </div>
                 </form>
+                		<div id="goodresult"></div>
+                        <div id="badresult"></div>
             </div>
         </div>
     </div>
@@ -292,22 +292,22 @@ e.preventDefault();
            dataType: 'json',
        statusCode: {
     							400: function() {
-     								 Replace('goodresult', '')
+     								 Replace('goodresult', '');
                    					 Replace('badresult', 'There was an error with your request.  Please try again later.');
    												 },
    	 							500: function() {
-     								 Replace('goodresult', '')
+     								 Replace('goodresult', '');
                    					 Replace('badresult', 'There was an internal server error.  Please try again later.');
    											     },
   
                 				201: function(data) {
-
                     				$( '#recovery' ).each(function(){
   									  this.reset();
                    				        Replace('badresult', '');
       								  document.getElementById("newpassword1").style.borderColor = "#000000";
    								     document.getElementById("newpassword2").style.borderColor = "#000000";
    									Replace('goodresult', 'Your password has successfully been reset!');
+   									Replace('recovery,', '');
                 													})
               										  }
        					 }
