@@ -60,10 +60,10 @@
                             <input type="hidden" name="status" value="nextstep">
                             <button type="submit" class="btn btn-default" style="font-family:din2;">Submit</button>
                         </div>
-                        <div id="goodresult"></div>
-                        <div id="badresult"></div>
                     </div>
                 </form>
+                	<div id="goodresult"></div>
+                    <div id="badresult"></div>
             </div>
         </div>
     </div>
@@ -166,8 +166,9 @@
   
                 				201: function(data) {
                     				// if (data.emails.length > 0) {
-                    				Replace('badresult', '')
-                    				Replace('goodresult', 'Please check your e-mail for a link to change your password.' + '\n' + 'E-mails Sent To: ' + data.emails + '\n' + 'If you do not have access to this e-mail account, please contact ITS.')
+                    				Replace('badresult', '');
+                    				Replace('goodresult', 'Please check your e-mail for a link to change your password.' + '\n' + 'E-mails Sent To: ' + data.emails + '\n' + 'If you do not have access to this e-mail account, please contact ITS.');
+                    				Replace('forgot', '');				
 
                     // }
                 }}
