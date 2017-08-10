@@ -58,13 +58,13 @@ case class Emailer(config: EmailConfig) {
       |<div style="background: linear-gradient(#00a3c9, #bdcc2a); width:150px; height:100vh;float:right; "></div>
       |<div style="background: linear-gradient(#00a3c9, #bdcc2a); width:150px; height:100vh;float:left;"></div>
       |<div style="margin: 30px auto 30px; padding: 0 0 40px;">
-      |<div align="center">
-      |<img src="$baseLink/static/img/eckerd_logo_email.jpg" align="center">
+      |<div align="left">
+      |<img src="$baseLink/static/img/EC-GulfCoast.png" align="center">
       |</div>
       |<h2 style="font-family:dincond-bold; color: #38939b; border-bottom: 2px solid #38939b;"> Eckerd College Password Recovery </h2>
       |
       |<p style="font-family:din;"> You are receiving this message because you have requested a reset of your Eckerd College password from
-      |our forgot password site. If you have received this message in error, please disregard. </p>
+      |our forgot password site. If you have received this message in error, please disregard. <br> <br> Please note that this link will expire in 24 hours.</p>
       |
       |<p style="font-family:din;"> Your password recovery link is: </p>
       |<p style="font-family:din;"><a href="$messageLink">$messageLink</a></p>
