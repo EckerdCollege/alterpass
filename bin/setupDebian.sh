@@ -45,10 +45,10 @@ chown alterpass:alterpass ${SERVICE_CONF}
 chown 660 ${SERVICE_CONF}
 
 # Generate Service File
-systemctl enable ${INSTALL_SRC}/conf/alterpass.service > /dev/null 2>&1
-systemctl daemon-reload
+which systemctl > /dev/null && systemctl enable ${INSTALL_SRC}/conf/alterpass.service > /dev/null 2>&1 || true
+which systemctl > /dev/null && systemctl daemon-reload || true
+which systemctl > /dev/null && echo "INFO - alterpass.service has been enabled" || true
 
-echo "INFO - alterpass.service has been enabled"
 echo ""
 echo "INFO - To complete the installation please complete the following"
 echo "1. Please Transfer Proprietary Files"
