@@ -2,15 +2,13 @@
 
 set -e
 
-# Requires sudo, wget, yum, systemD
+# Requires sudo, wget, deb, apt-get systemD
 
 # Ensures Script is Running As Root or Elevates with sudo
 [ $(whoami) = root ] || { sudo "$0" "$@"; exit $?; }
 
-# Download SBT RPM and Install
-wget https://bintray.com/sbt/rpm/rpm -O bintray-sbt-rpm.repo
-mv bintray-sbt-rpm.repo /etc/yum.repos.d/
-yum install -y sbt
+echo "deb https://sbt.bintray.com/debian /" | tee -a /etc/apt/sources.list
+apt-get install -y sbt
 
 # Gets the location of the running script, and goes up one level to the containing directory
 DIR_SRC="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )"
