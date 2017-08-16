@@ -7,6 +7,7 @@ jdk:
   - oraclejdk8
 
 sudo: true
+dist: trusty
 
 script:
   - sbt ++$TRAVIS_SCALA_VERSION test
