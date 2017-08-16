@@ -47,6 +47,7 @@ chown 660 ${SERVICE_CONF}
 
 # Generate Service File
 systemctl enable ${INSTALL_SRC}/conf/alterpass.service > /dev/null 2>&1
+systemctl daemon-reload
 
 echo "INFO - alterpass.service has been enabled"
 echo ""
@@ -55,6 +56,3 @@ echo "1. Please Transfer Proprietary Files"
 echo "2. Complete ${SERVICE_CONF}"
 echo "3. Afterwards run - sudo systemctl start alterpass"
 echo "4. Check status   - sudo systemctl status alterpass"
-
-
-
