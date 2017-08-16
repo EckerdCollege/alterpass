@@ -42,7 +42,7 @@ chown -R alterpass:alterpass ${INSTALL_DIR}
 SERVICE_CONF="${INSTALL_CONF}/alterpass.conf"
 cp ${INSTALL_SRC}/conf/alterpass.conf ${SERVICE_CONF}
 chown alterpass:alterpass ${SERVICE_CONF}
-chown 660 ${SERVICE_CONF}
+chmod 660 ${SERVICE_CONF}
 
 # Generate Service File
 which systemctl > /dev/null && systemctl enable ${INSTALL_SRC}/conf/alterpass.service > /dev/null 2>&1 || true
