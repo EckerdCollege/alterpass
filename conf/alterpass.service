@@ -1,0 +1,14 @@
+[Unit]
+Description=Alter Pass Server
+After=network.target
+
+[Service]
+Type=simple
+User=alterpass
+WorkingDirectory=/opt/alterpass/src
+EnvironmentFile=/opt/alterpass/conf/alterpass.conf
+ExecStart=/usr/bin/sbt run
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
