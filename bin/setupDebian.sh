@@ -7,8 +7,8 @@ set -e
 # Ensures Script is Running As Root or Elevates with sudo
 [ $(whoami) = root ] || { sudo "$0" "$@"; exit $?; }
 
-echo "deb https://sbt.bintray.com/debian /" | tee -a /etc/apt/sources.list
-apt-get install -y sbt
+which sbt || echo "deb https://sbt.bintray.com/debian /" | tee -a /etc/apt/sources.list
+which sbt || apt-get install -y sbt
 
 # Gets the location of the running script, and goes up one level to the containing directory
 DIR_SRC="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )"
