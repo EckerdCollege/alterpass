@@ -7,6 +7,7 @@ set -e
 # Ensures Script is Running As Root or Elevates with sudo
 [ $(whoami) = root ] || { sudo "$0" "$@"; exit $?; }
 
+which java > /dev/null || apt-get install -y java
 which sbt > /dev/null || echo "deb https://sbt.bintray.com/debian /" | tee -a /etc/apt/sources.list
 which sbt > /dev/null || apt-get install -y sbt
 

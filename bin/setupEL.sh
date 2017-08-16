@@ -7,6 +7,8 @@ set -e
 # Ensures Script is Running As Root or Elevates with sudo
 [ $(whoami) = root ] || { sudo "$0" "$@"; exit $?; }
 
+# Install Java
+which java > /dev/null ||  yum install -y java
 # Download SBT RPM and Install
 wget https://bintray.com/sbt/rpm/rpm -O bintray-sbt-rpm.repo
 mv bintray-sbt-rpm.repo /etc/yum.repos.d/
@@ -26,7 +28,6 @@ INSTALL_CONF="${INSTALL_DIR}/conf"
 
 # Temporary File location for SQLite and AgingFile
 INSTALL_TMP="${INSTALL_DIR}/tmp"
-
 
 # Create User And Install Location
 # Afterwards user should exist with
