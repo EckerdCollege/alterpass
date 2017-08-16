@@ -12,3 +12,4 @@ dist: trusty
 script:
   - sbt ++$TRAVIS_SCALA_VERSION test
   - bin/setupDebian.sh
+  - sudo apt-get install -y tree && sudo tree /opt/alterpass
