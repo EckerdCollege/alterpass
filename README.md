@@ -54,18 +54,18 @@ This is the base uri/link without the additional path segments.
 
 
 **OJDBC - REQUIRED** - As stated previously this is a closed source component and needs to be added. It needs to be placed in the
-`lib/` folder. It can be found on the 
+`/opt/alterpass/src/lib/` folder. It can be found on the 
 [Oracle site](http://www.oracle.com/technetwork/database/features/jdbc/jdbc-ucp-122-3110062.html).
 
 **Google P12 - REQUIRED** - Google Provides a connection file which is used for API access. This needs to be present.
 Default location assumes `/opt/alterpass/conf/alterpass.p12`
 
 **Images** - This site makes use of some static binary image content that needs to be placed at 
-`src/main/resources/static/img`. Without these the backgrounds will be bland, and a broken image link will appear, but
+`/opt/alterpass/src/src/main/resources/static/img`. Without these the backgrounds will be bland, and a broken image link will appear, but
 will function equivalently, as images are graphical aides only.
 
 **Fonts** - Eckerd College Utilizes Proprietary Fonts and as a result these font files need to be placed in
-`src/main/resources/static/fonts`. Without these it will not appear identical but will function equivalently.
+`/opt/alterpass/src/src/main/resources/static/fonts`. Without these it will not appear identical but will function equivalently.
 
 
 ### Install Instructions - EL 7

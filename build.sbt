@@ -1,7 +1,7 @@
 organization := "edu.eckerd"
 name := "alterpass"
 version := "0.1.0-M1"
-scalaVersion := "2.12.2"
+scalaVersion := "2.12.3"
 
 
 val Http4sVersion = "0.17.0-M3"
