@@ -1,4 +1,6 @@
-#!/usr/bin/env bash set -e
+#!/usr/bin/env bash
+
+set -e
 
 # Requires sudo, wget, yum, systemD
 
@@ -27,12 +29,14 @@ yum install -y sbt
 
 # Create User And Install Location
 # Afterwards user should exist with
-useradd --system alterpass
+id -u alterpass > /dev/null 2>&1 || useradd --system alterpass
 mkdir -p ${INSTALL_DIR}
 mkdir -p ${INSTALL_DIR}/conf
 mkdir -p ${INSTALL_DIR}/tmp
+mkdir -p ${INSTALL_SRC}
+
+rsync -r ${DIR_SRC}/* ${INSTALL_SRC}
 chown -R alterpass:alterpass ${INSTALL_DIR}
-rsync --chown alterpass:alterpass ${DIR_SRC} ${INSTALL_SRC}
 
 # Move Incomplete Config File Out of Git Repository for Completion
 SERVICE_CONF="${INSTALL_CONF}/alterpass.conf"
@@ -40,16 +44,16 @@ cp ${INSTALL_SRC}/conf/alterpass.conf ${SERVICE_CONF}
 chown alterpass:alterpass ${SERVICE_CONF}
 chown 660 ${SERVICE_CONF}
 
-
 # Generate Service File
-ln -sf ${INSTALL_SRC}/conf/alterpass.service /etc/systemd/system/alterpass.service
-systemctl daemon-reload
-systemctl enable alterpass.service
+systemctl enable ${INSTALL_SRC}/conf/alterpass.service > /dev/null 2>&1
 
 echo "INFO - alterpass.service has been enabled"
+echo ""
+echo "INFO - To complete the installation please complete the following"
 echo "1. Please Transfer Proprietary Files"
 echo "2. Complete ${SERVICE_CONF}"
 echo "3. Afterwards run - sudo systemctl start alterpass"
 echo "4. Check status   - sudo systemctl status alterpass"
+
 
 
