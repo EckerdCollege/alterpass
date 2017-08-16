@@ -75,6 +75,10 @@ will function equivalently, as images are graphical aides only.
 3. Add files listed above to acceptable locations.
 4. Fill out `/opt/alterpass/conf/alterpass.conf` with appropriate variables.
 
+### Eckerd Variables
+
+1. The home for these files is on morpheus in `/home/alterpass/files`.
+
 
 
 
