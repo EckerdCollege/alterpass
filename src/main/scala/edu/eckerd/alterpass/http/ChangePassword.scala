@@ -13,6 +13,7 @@ import cats.implicits._
 import org.http4s.server.middleware.CORS
 import org.log4s.getLogger
 
+
 case class ChangePassword(toolbox: Toolbox)(implicit strategy: Strategy) {
 
   private val logger = getLogger
@@ -27,8 +28,7 @@ case class ChangePassword(toolbox: Toolbox)(implicit strategy: Strategy) {
         StaticFile.fromResource(s"/pages/$prefix.html", Some(req))
           .map(_.putHeaders())
           .map(_.putHeaders(`Cache-Control`(NonEmptyList.of(`no-cache`()))))
-          .map(Task.now)
-          .getOrElse(NotFound())
+          .getOrElseF(NotFound())
 
       // Post
       case req @ POST -> Root =>

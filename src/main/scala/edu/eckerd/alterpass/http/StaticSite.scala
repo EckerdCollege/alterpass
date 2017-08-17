@@ -1,11 +1,12 @@
 package edu.eckerd.alterpass.http
 
-import cats.data.NonEmptyList
+import cats.data.{NonEmptyList, OptionT}
 import fs2.Task
 import org.http4s.CacheDirective.`no-cache`
 import org.http4s._
 import org.http4s.dsl._
 import org.http4s.headers.`Cache-Control`
+import fs2.interop.cats._
 
 object StaticSite {
 
@@ -20,18 +21,18 @@ object StaticSite {
         .fromResource(s"/pages/index.html", Some(req))
         .map(_.putHeaders())
         .map(_.putHeaders(`Cache-Control`(NonEmptyList.of(`no-cache`()))))
-        .map(Task.now)
-        .getOrElse(NotFound())
+        .getOrElseF(NotFound())
 
      // Loads Any Static Resources as Called
     case req if supportedStaticExtensions.exists(req.pathInfo.endsWith) =>
       StaticFile
         .fromResource(req.pathInfo, Some(req))
         .map(_.putHeaders())
-        .orElse(Option(getClass.getResource(req.pathInfo)).flatMap(
-          StaticFile.fromURL(_, Some(req))))
+        .orElse(
+          OptionT.fromOption[Task](Option(getClass.getResource(req.pathInfo))
+          ).flatMap(StaticFile.fromURL(_, Some(req)))
+        )
         .map(_.putHeaders(`Cache-Control`(NonEmptyList.of(`no-cache`()))))
-        .map(Task.now)
-        .getOrElse(NotFound())
+        .getOrElseF(NotFound())
   }
 }

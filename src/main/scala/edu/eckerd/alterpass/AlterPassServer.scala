@@ -17,7 +17,6 @@ import edu.eckerd.alterpass.email.Emailer
 
 object AlterPassServer extends StreamApp {
 
-  val pool : ExecutorService  = Executors.newCachedThreadPool()
   implicit val strategy = Strategy.fromExecutionContext(scala.concurrent.ExecutionContext.global)
 
   override def stream(args: List[String]): Stream[Task, Nothing] = {
@@ -80,7 +79,6 @@ object AlterPassServer extends StreamApp {
       .mountService(changePasswordService.service, changePasswordService.prefix)
       .mountService(forgotPasswordService.service, forgotPasswordService.prefix)
       .mountService(StaticSite.service)
-      .withServiceExecutor(pool)
       .serve
   }
 }

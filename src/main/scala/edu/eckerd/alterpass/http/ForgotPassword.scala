@@ -33,8 +33,7 @@ case class ForgotPassword(tools: Toolbox)(implicit strategy: Strategy) {
         StaticFile.fromResource(s"/pages/$prefix.html", Some(req))
           .map(_.putHeaders())
           .map(_.putHeaders(`Cache-Control`(NonEmptyList.of(`no-cache`()))))
-          .map(Task.now)
-          .getOrElse(NotFound())
+          .getOrElseF(NotFound())
 
       // Post Location Taking Email Address to Have Password Reset
       case req @ POST -> Root =>
@@ -45,8 +44,7 @@ case class ForgotPassword(tools: Toolbox)(implicit strategy: Strategy) {
         StaticFile.fromResource(s"/pages/recovery.html", Some(req))
           .map(_.putHeaders())
           .map(_.putHeaders(`Cache-Control`(NonEmptyList.of(`no-cache`()))))
-          .map(Task.now)
-          .getOrElse(NotFound())
+          .getOrElseF(NotFound())
 
       // Post Location for the return page
       case req @ POST -> Root / randomExtension =>
