@@ -1,12 +1,12 @@
 organization := "edu.eckerd"
 name := "alterpass"
-version := "0.1.0-M1"
+version := "0.1.0-SNAPSHOT"
 scalaVersion := "2.12.3"
 
 
-val Http4sVersion = "0.17.0-M3"
+val Http4sVersion = "0.17.0-RC1"
 val CirceVersion = "0.8.0"
-val DoobieVersion = "0.4.2-SNAPSHOT"
+val DoobieVersion = "0.4.2"
 
 resolvers += Resolver.sonatypeRepo("releases")
 resolvers += Resolver.sonatypeRepo("snapshots")

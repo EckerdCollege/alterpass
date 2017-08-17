@@ -6,7 +6,7 @@ import fs2.Strategy
 import fs2.interop.cats._
 import cats.implicits._
 
-case class SqlLiteDB(transactor: Transactor[Task, Unit]) {
+case class SqlLiteDB(transactor: Transactor[Task]) {
 
   def rateLimitCheck(username: String, time: Long): Task[Boolean] = {
     // 1 Day Less Than Current Time
@@ -80,7 +80,7 @@ object SqlLiteDB {
 
   val dbName = "alterpass.db"
 
-  def createSqlLiteTransactor(path: String): Transactor[Task, Unit] = {
+  def createSqlLiteTransactor(path: String): Transactor[Task] = {
 
     val newPath = if (path.endsWith("/")) path else s"$path/"
     val sqlliteDriver = "org.sqlite.JDBC"
@@ -109,7 +109,7 @@ object SqlLiteDB {
       .run
       .transact(transactor)
 
-    transactor.connect(()) >> createTableT >> Task(SqlLiteDB(transactor))
+     createTableT >> Task(SqlLiteDB(transactor))
   }
 
 
