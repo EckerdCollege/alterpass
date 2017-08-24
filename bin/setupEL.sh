@@ -31,7 +31,7 @@ INSTALL_TMP="${INSTALL_DIR}/tmp"
 
 # Create User And Install Location
 # Afterwards user should exist with
-id -u alterpass > /dev/null 2>&1 || useradd --system alterpass
+id -u alterpass > /dev/null 2>&1 || useradd alterpass
 mkdir -p ${INSTALL_DIR}
 mkdir -p ${INSTALL_DIR}/conf
 mkdir -p ${INSTALL_DIR}/tmp
