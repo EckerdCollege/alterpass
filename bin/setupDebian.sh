@@ -13,6 +13,7 @@ which sbt > /dev/null || apt-get install -y sbt
 
 # Gets the location of the running script, and goes up one level to the containing directory
 DIR_SRC="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )"
+echo "DIR_SRC is ${DIR_SRC}"
 
 # Base Install Directory
 INSTALL_DIR="/opt/alterpass"
@@ -35,8 +36,7 @@ mkdir -p ${INSTALL_DIR}/conf
 mkdir -p ${INSTALL_DIR}/tmp
 mkdir -p ${INSTALL_SRC}
 
-rsync -r ${DIR_SRC}/* ${INSTALL_SRC}
-rsync -r ${DIR_SRC}/.* ${INSTALL_SRC}
+rsync -a ${DIR_SRC}/ ${INSTALL_SRC}/
 chown -R alterpass:alterpass ${INSTALL_DIR}
 
 # Move Incomplete Config File Out of Git Repository for Completion

@@ -1,3 +1,6 @@
+enablePlugins(JavaServerAppPackaging)
+enablePlugins(SystemdPlugin)
+
 organization := "edu.eckerd"
 name := "alterpass"
 version := "0.1.0-SNAPSHOT"
@@ -35,9 +38,7 @@ libraryDependencies ++= Seq(
   "org.tpolecat"    %% "doobie-specs2-cats"   % DoobieVersion   % Test
 )
 
-unmanagedBase := baseDirectory.value / "lib"
-
-
+// Options
 scalacOptions ++= Seq(
   "-deprecation",                      // Emit warning and location for usages of deprecated APIs.
   "-encoding", "utf-8",                // Specify character encoding used by source files.
@@ -90,3 +91,18 @@ scalacOptions in (Compile, console) ~= (_.filterNot(Set(
   "-Ywarn-unused:imports",
   "-Xfatal-warnings"
 )))
+
+// App Packaging Settings
+daemonUser := "alterpass"
+daemonGroup := "alterpass"
+
+// package settings
+maintainer in Linux := "Christopher Davenport <Chris@ChristopherDavenport.tech>"
+packageSummary in Linux := "Basic Alterpass Installation"
+packageDescription := "Change/Forget Password across LDAP, Google"
+
+// rpm specific
+rpmRelease := "1"
+rpmVendor := "eckerd.edu"
+rpmUrl := Some("https://github.com/EckerdCollege/alterpass")
+rpmLicense := Some("Apache v2")
