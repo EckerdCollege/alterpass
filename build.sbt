@@ -4,7 +4,7 @@ version := "0.1.0-SNAPSHOT"
 scalaVersion := "2.12.3"
 
 
-val Http4sVersion = "0.17.0-RC1"
+val Http4sVersion = "0.17.0-RC2"
 val CirceVersion = "0.8.0"
 val DoobieVersion = "0.4.2"
 
