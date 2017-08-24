@@ -36,8 +36,7 @@ mkdir -p ${INSTALL_DIR}/conf
 mkdir -p ${INSTALL_DIR}/tmp
 mkdir -p ${INSTALL_SRC}
 
-rsync -a ${DIR_SRC}/* ${INSTALL_SRC}/
-rsync -a ${DIR_SRC}/.* ${INSTALL_SRC}/
+rsync -a ${DIR_SRC}/ ${INSTALL_SRC}/
 chown -R alterpass:alterpass ${INSTALL_DIR}
 
 # Move Incomplete Config File Out of Git Repository for Completion
