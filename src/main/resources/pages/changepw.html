@@ -229,6 +229,7 @@ function strengthCheck() {
 $('#change').submit(function(e) {
 e.preventDefault();
   var username = $('input#username').val();
+  var username1 = username.toLowerCase();
   var oldpass = $("#oldpassword").val();
   var newpass1 = $("#newpassword1").val();
   var newpass2 = $("#newpassword2").val();
@@ -278,7 +279,7 @@ e.preventDefault();
    
    else if(newpass1 == newpass2 && passed !== false) {
 	console.log(username);
-	var json = JSON.stringify({username : username,
+	var json = JSON.stringify({username : username1,
 								oldPass: oldpass,  
 								newPass: newpass2
 							});
