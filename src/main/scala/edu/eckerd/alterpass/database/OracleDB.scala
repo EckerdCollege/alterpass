@@ -14,11 +14,13 @@ case class OracleDB(host: String, port: Int, sid: String, hikariTransactor: Hika
 
 
 
-  def getPersonalEmails(username: String): Task[List[String]] = {
+  def getPersonalEmails(username: String): Task[List[(String, String)]] = {
     val newUserName = if (username.endsWith("@eckerd.edu")) username else s"$username@eckerd.edu"
 
 
-    val q =sql"""SELECT gPersonal.GOREMAL_EMAIL_ADDRESS as PERSONAL_EMAIL
+    val q =sql"""SELECT
+             gPersonal.GOREMAL_EMAIL_ADDRESS as PERSONAL_EMAIL
+             gSchool.GOREMAL_EMAL_CODE as EMAIL_CODE
         FROM GOREMAL gSchool
         INNER JOIN
           GOREMAL gPersonal
@@ -33,7 +35,7 @@ case class OracleDB(host: String, port: Int, sid: String, hikariTransactor: Hika
           gPersonal.GOREMAL_STATUS_IND = 'A'
         AND
           gSchool.GOREMAL_EMAIL_ADDRESS= $newUserName
-      """.query[String]
+      """.query[(String, String)]
 
       q.list.transact(hikariTransactor)
   }
