@@ -139,15 +139,8 @@ hr {
 footer {
   background: #fff;
   background: rgba(255,255,255,0.9);
-/* position: absolute; */
     bottom: 0;
-    /* margin-bottom: -50px;  */
-/* 
-    margin-top : 40px;
- */
     width: 100%;
- /* 	visibility: hidden; */
-    /* height: 250px; */
      visibility: visible;
 }
 
@@ -159,17 +152,16 @@ footer p {
 
 
 
+/* 
 @media screen and (min-width: 40.5em) {
   footer {
     visibility: visible;
- 	/* height: auto; */
  	position: absolute;
 
   }
   footer p {
   margin: 0;
   padding: 25px 0;
-/*   visibility: visible; */ }
 
 #footercopy {
 text-align:left;
@@ -178,6 +170,23 @@ text-align:left;
 
 
 }
+ */
+
+@media only all and (min-width: 768px) and (min-height: 768px) {
+  footer {
+    visibility: visible;
+	height: auto;
+	bottom: 0;
+	position: absolute;
+}
+  footer p {
+  margin: 0;
+  padding: 25px 0;
+  }
+#footercopy {
+text-align:left;
+}
+  }
 
 
 
