@@ -194,9 +194,19 @@ color: rgb(84, 88, 90);
 text-align:left;
 
 }
-
-
 }
+
+/* 
+@media only all and (min-width: 768px) and (min-height: 768px) {
+  footer {
+    visibility: visible;
+ 	/* height: auto; */
+	height: auto;
+	bottom: 0;
+ 	position: absolute;
+
+  }
+ */
 
 
 
