@@ -112,7 +112,7 @@ object ForgotPassword {
                             ): IO[Response[IO]] = {
     val rand = f()
     for {
-      fp <- request.as(jsonOf[ForgotPasswordReceived])
+      fp <- request.decodeJson[ForgotPasswordReceived]
       bool <- tools.sqlLiteDB.rateLimitCheck(fp.username, g())
       resp <- if (bool) {
         for {
@@ -168,7 +168,7 @@ object ForgotPassword {
                             g: () => Long
                             ): IO[Response[IO]] = {
     for {
-      fpr <- request.as(jsonOf[IO, ForgotPasswordRecovery])
+      fpr <- request.decodeJson[ForgotPasswordRecovery]
       rem <- tools.sqlLiteDB.removeOlder(g())
       bool <- tools.sqlLiteDB.recoveryLink(fpr.username, url, g())
       resp <- {

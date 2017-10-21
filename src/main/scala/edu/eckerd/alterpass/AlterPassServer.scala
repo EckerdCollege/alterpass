@@ -12,8 +12,6 @@ import org.http4s.util.StreamApp
 import org.http4s.server.blaze.BlazeBuilder
 import Configuration.loadAllFromEnv
 import edu.eckerd.alterpass.email.Emailer
-import cats._
-import cats.implicits._
 import cats.effect.IO
 
 object AlterPassServer extends StreamApp[IO] {

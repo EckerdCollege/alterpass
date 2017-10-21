@@ -13,6 +13,7 @@ import org.http4s.server.middleware.CORS
 import org.log4s.getLogger
 import io.circe.Decoder
 import cats.effect.IO
+import org.http4s.circe._
 
 
 case class ChangePassword(toolbox: Toolbox) {
@@ -21,7 +22,7 @@ case class ChangePassword(toolbox: Toolbox) {
 
   val prefix = "/changepw"
 
-  val service = CORS {
+  val service = CORS[IO] {
     HttpService[IO]{
 
       // Form Page For Change Password, taking Email/Username, Current Password, and New Password
@@ -34,7 +35,7 @@ case class ChangePassword(toolbox: Toolbox) {
       // Post
       case req @ POST -> Root =>
         for {
-          cpw <- req.as(jsonOf[IO, ChangePasswordReceived])
+          cpw <- req.decodeJson[ChangePasswordReceived]
           bool <- toolbox.ldapAdmin.checkBind(cpw.username, cpw.oldPass)
           resp <- if (bool){
             val ldapUserName = cpw.username.replaceAll("@eckerd.edu", "")

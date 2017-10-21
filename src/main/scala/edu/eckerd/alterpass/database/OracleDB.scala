@@ -1,16 +1,10 @@
 package edu.eckerd.alterpass.database
 
-import doobie.imports._
-import doobie.hikari.imports._
-import cats.data._
-import edu.eckerd.alterpass.errors.OracleError
-import cats.implicits._
-import cats._
+import doobie.implicits._
+import doobie.hikari._
 import cats.effect.IO
 
 case class OracleDB(host: String, port: Int, sid: String, hikariTransactor: HikariTransactor[IO]) {
-
-
 
   def getPersonalEmails(username: String): IO[List[String]] = {
     val newUserName = if (username.endsWith("@eckerd.edu")) username else s"$username@eckerd.edu"
