@@ -16,7 +16,7 @@ import cats._
 import cats.implicits._
 import cats.effect.IO
 
-object AlterPassServer extends StreamApp {
+object AlterPassServer extends StreamApp[IO] {
 
   def stream(args: List[String], requestShutdown: IO[Unit]): Stream[IO, StreamApp.ExitCode] = {
     config.flatMap(c => Stream.eval(createTools(c))).flatMap(constructServer)
