@@ -6,9 +6,7 @@ import javax.mail.internet.{InternetAddress, MimeMessage, MimeMultipart}
 
 import cats.data.NonEmptyList
 import edu.eckerd.alterpass.Configuration.EmailConfig
-import fs2.Task
-import fs2.Strategy
-
+import cats.effect.IO
 
 
 case class Emailer(config: EmailConfig) {
@@ -76,7 +74,7 @@ case class Emailer(config: EmailConfig) {
   }
 
 
-  def sendNotificationEmail(emails: List[String], random: String)(implicit strategy: Strategy): Task[Unit] = Task.now{
+  def sendNotificationEmail(emails: List[String], random: String): IO[Unit] = IO{
     if (emails.nonEmpty) {
       val message = new MimeMessage(session)
       val from = new InternetAddress(userEmail)

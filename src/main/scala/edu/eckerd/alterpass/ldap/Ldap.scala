@@ -1,11 +1,11 @@
 package edu.eckerd.alterpass.ldap
 
-import fs2.Task
+import cats.effect.IO
 
 trait Ldap {
 
-  def checkBind(uid:String,pass:String) : Task[Boolean]
+  def checkBind(uid:String,pass:String) : IO[Boolean]
 
-  def setUserPassword(uid: String, newPass: String): Task[Int]
+  def setUserPassword(uid: String, newPass: String): IO[Int]
 
 }

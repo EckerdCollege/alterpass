@@ -1,12 +1,12 @@
 package edu.eckerd.alterpass.http
 
 import cats.data.{NonEmptyList, OptionT}
-import fs2.Task
+import cats.effect.IO
 import org.http4s.CacheDirective.`no-cache`
 import org.http4s._
-import org.http4s.dsl._
+import org.http4s.dsl.io._
 import org.http4s.headers.`Cache-Control`
-import fs2.interop.cats._
+
 
 object StaticSite {
 
@@ -14,7 +14,7 @@ object StaticSite {
     
   List(".html", ".js", ".map", ".css", ".png", ".ico", ".jpg", ".jpeg", ".otf", ".ttf"  )
 
-  val service = HttpService {
+  val service = HttpService[IO] {
     // Does An HTML Rewrite of html files so that it does not display the .html
     case req @ GET -> Root =>
       StaticFile
@@ -29,7 +29,7 @@ object StaticSite {
         .fromResource(req.pathInfo, Some(req))
         .map(_.putHeaders())
         .orElse(
-          OptionT.fromOption[Task](Option(getClass.getResource(req.pathInfo))
+          OptionT.fromOption[IO](Option(getClass.getResource(req.pathInfo))
           ).flatMap(StaticFile.fromURL(_, Some(req)))
         )
         .map(_.putHeaders(`Cache-Control`(NonEmptyList.of(`no-cache`()))))

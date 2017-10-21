@@ -5,28 +5,30 @@ import java.time.Instant
 import cats.data.NonEmptyList
 import edu.eckerd.alterpass.models._
 import fs2._
+import cats._
 import cats.implicits._
-import fs2.interop.cats._
+import cats.effect.IO
 import org.http4s.CacheDirective.`no-cache`
 import org.http4s._
 import org.http4s.circe._
-import org.http4s.dsl._
+import org.http4s.dsl.io._
 import org.http4s.headers.`Cache-Control`
 import _root_.io.circe.syntax._
 import edu.eckerd.alterpass.errors.{AlterPassError, GenericError}
+import org.http4s.dsl.Http4sDsl
 import org.http4s.server.middleware.CORS
 import org.log4s.getLogger
 
 import scala.annotation.tailrec
 
-case class ForgotPassword(tools: Toolbox)(implicit strategy: Strategy) {
+case class ForgotPassword(tools: Toolbox) extends Http4sDsl[IO] {
   import ForgotPassword._
 
   // Prefix Will Be Prepended to All Roots of this Service
   val prefix = "/forgotpw"
 
-  val service = CORS {
-    HttpService {
+  val service = CORS[IO] {
+    HttpService[IO] {
 
       // Page Displaying Form for Email Address to Reset
       case req @ GET -> Root =>
@@ -76,7 +78,7 @@ object ForgotPassword {
     }
   }
 
-  def resetAllPasswords(tools: Toolbox, fpr: ForgotPasswordRecovery)(implicit strategy: Strategy): Task[Unit] = {
+  def resetAllPasswords(tools: Toolbox, fpr: ForgotPasswordRecovery): IO[Unit] = {
     val ldapUserName = fpr.username.replaceAll("@eckerd.edu", "")
     val googleUserName = if (fpr.username.endsWith("@eckerd.edu")) fpr.username else s"${fpr.username}@eckerd.edu"
 
@@ -84,7 +86,7 @@ object ForgotPassword {
     val resetGoogle = tools.googleAPI.changePassword(googleUserName, fpr.newPass)
     val writeFile = tools.agingFile.writeUsernamePass(ldapUserName, fpr.newPass)
 
-    writeFile >> resetLDAP >> resetGoogle >> Task.now(())
+    writeFile >> resetLDAP >> resetGoogle >> IO.pure(())
   }
 
 
@@ -104,10 +106,10 @@ object ForgotPassword {
 
   def forgotPassWordReceived(
                               tools: Toolbox,
-                              request: Request,
+                              request: Request[IO],
                               f: () => String,
                               g: () => Long
-                            )(implicit strategy: Strategy): Task[Response] = {
+                            ): IO[Response[IO]] = {
     val rand = f()
     for {
       fp <- request.as(jsonOf[ForgotPasswordReceived])
@@ -120,14 +122,14 @@ object ForgotPassword {
           if (personalEmails.nonEmpty){
             tools.sqlLiteDB.writeConnection(fp.username, rand, g()).attempt
           } else {
-            Task.fail(new Throwable(s"No Emails Returned for ${fp.username}")).attempt
+            IO.raiseError(new Throwable(s"No Emails Returned for ${fp.username}")).attempt
           }
         }
-        sendEmailAtt <- writeDbAtt.fold( e => Task.fail(e), _ => tools.email.sendNotificationEmail(personalEmails, rand)).attempt
+        sendEmailAtt <- writeDbAtt.fold( e => IO.raiseError(e), _ => tools.email.sendNotificationEmail(personalEmails, rand)).attempt
         resp <- {
           sendEmailAtt.fold(
             e =>
-              Task(logger.info(e.getMessage)) >>
+              IO(logger.info(e.getMessage)) >>
               BadRequest(
                 GenericError(
                   errorType = "Generic",
@@ -135,13 +137,13 @@ object ForgotPassword {
                 ).asInstanceOf[AlterPassError].asJson
               ),
             _ =>
-              Task(logger.info(s"Forgot Password Link Written for ${fp.username} - Sent To: $personalEmails")) >>
+              IO(logger.info(s"Forgot Password Link Written for ${fp.username} - Sent To: $personalEmails")) >>
                 Created(ForgotPasswordReturn(personalEmails.map(concealEmail)).asJson)
           )
         }
         } yield resp
       } else {
-        Task(logger.info(s"Too many requests for ${fp.username} - Address : ${request.remoteAddr}")) >>
+        IO(logger.info(s"Too many requests for ${fp.username} - Address : ${request.remoteAddr}")) >>
         BadRequest(GenericError("Generic", "RateLimit exceeded").asInstanceOf[AlterPassError].asJson)
       }
     } yield resp
@@ -149,8 +151,8 @@ object ForgotPassword {
 
   def forgotPassWordReceivedRandom(
                                     tools: Toolbox,
-                                    request: Request
-                                  )(implicit strategy: Strategy): Task[Response] = {
+                                    request: Request[IO]
+                                  ): IO[Response[IO]] = {
     val f = () => randomAlphaNumeric(40)
     val g = () => Instant.now().getEpochSecond
 
@@ -161,22 +163,22 @@ object ForgotPassword {
 
   def forgotPasswordRecovery(
                             tools: Toolbox,
-                            request: Request,
+                            request: Request[IO],
                             url: String,
                             g: () => Long
-                            )(implicit strategy: Strategy): Task[Response] = {
+                            ): IO[Response[IO]] = {
     for {
-      fpr <- request.as(jsonOf[ForgotPasswordRecovery])
+      fpr <- request.as(jsonOf[IO, ForgotPasswordRecovery])
       rem <- tools.sqlLiteDB.removeOlder(g())
       bool <- tools.sqlLiteDB.recoveryLink(fpr.username, url, g())
       resp <- {
         if (bool)
           resetAllPasswords(tools, fpr) >>
           tools.sqlLiteDB.removeRecoveryLink(fpr.username, url) >>
-            Task(logger.info(s"Passwords Reset for - ${fpr.username}")) >>
+            IO(logger.info(s"Passwords Reset for - ${fpr.username}")) >>
             Created(ForgotPasswordReceived(fpr.username).asJson)
         else
-          Task(
+          IO(
             logger.error(s"Request to Reset ${fpr.username} with incorrect link. Address : ${request.remoteAddr}")
           ) >>
           BadRequest()
@@ -187,9 +189,9 @@ object ForgotPassword {
 
   def forgotPasswordRecoveryWithTime(
                                       tools: Toolbox,
-                                      request: Request,
+                                      request: Request[IO],
                                       url: String
-                                    )(implicit strategy: Strategy): Task[Response] = {
+                                    ): IO[Response[IO]] = {
 
     val g = () => Instant.now().getEpochSecond
     forgotPasswordRecovery(tools, request, url, g)

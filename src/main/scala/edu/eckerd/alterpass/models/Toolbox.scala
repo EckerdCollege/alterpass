@@ -1,5 +1,6 @@
 package edu.eckerd.alterpass.models
 
+import cats.effect.IO
 import edu.eckerd.alterpass.agingfile.AgingFile
 import edu.eckerd.alterpass.database.{OracleDB, SqlLiteDB}
 import edu.eckerd.alterpass.email.Emailer
@@ -13,6 +14,6 @@ case class Toolbox(
                   oracleDB: OracleDB,
                   sqlLiteDB: SqlLiteDB,
                   googleAPI: GoogleAPI,
-                  blazeBuilder: BlazeBuilder,
+                  blazeBuilder: BlazeBuilder[IO],
                   email: Emailer
                   )

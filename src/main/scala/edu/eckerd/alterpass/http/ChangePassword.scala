@@ -2,26 +2,27 @@ package edu.eckerd.alterpass.http
 
 import cats.data.NonEmptyList
 import edu.eckerd.alterpass.models.{ChangePasswordReceived, Toolbox}
-import fs2.{Strategy, Task}
 import org.http4s.CacheDirective.`no-cache`
 import org.http4s._
-import org.http4s.dsl._
+import org.http4s.dsl.io._
 import org.http4s.headers.`Cache-Control`
 import org.http4s.circe._
-import fs2.interop.cats._
+import cats._
 import cats.implicits._
 import org.http4s.server.middleware.CORS
 import org.log4s.getLogger
+import io.circe.Decoder
+import cats.effect.IO
 
 
-case class ChangePassword(toolbox: Toolbox)(implicit strategy: Strategy) {
+case class ChangePassword(toolbox: Toolbox) {
 
   private val logger = getLogger
 
   val prefix = "/changepw"
 
   val service = CORS {
-    HttpService {
+    HttpService[IO]{
 
       // Form Page For Change Password, taking Email/Username, Current Password, and New Password
       case req @ GET -> Root =>
@@ -33,7 +34,7 @@ case class ChangePassword(toolbox: Toolbox)(implicit strategy: Strategy) {
       // Post
       case req @ POST -> Root =>
         for {
-          cpw <- req.as(jsonOf[ChangePasswordReceived])
+          cpw <- req.as(jsonOf[IO, ChangePasswordReceived])
           bool <- toolbox.ldapAdmin.checkBind(cpw.username, cpw.oldPass)
           resp <- if (bool){
             val ldapUserName = cpw.username.replaceAll("@eckerd.edu", "")
@@ -43,11 +44,11 @@ case class ChangePassword(toolbox: Toolbox)(implicit strategy: Strategy) {
               agingFile <- toolbox.agingFile.writeUsernamePass(ldapUserName, cpw.newPass)
               setPass <- toolbox.ldapAdmin.setUserPassword(ldapUserName, cpw.newPass)
               google <- toolbox.googleAPI.changePassword(googleUserName, cpw.newPass)
-              _ <- Task(logger.info(s"Password Changed for ${cpw.username}"))
+              _ <- IO(logger.info(s"Password Changed for ${cpw.username}"))
               resp <- Created()
             } yield resp
           } else {
-            Task(logger.info(s"Error Incorrect Current Password : ${cpw.username}")) >>
+            IO(logger.info(s"Error Incorrect Current Password : ${cpw.username}")) >>
             BadRequest()
           }
 
