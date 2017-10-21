@@ -1,10 +1,7 @@
 package edu.eckerd.alterpass.database
 
-import java.sql.DriverManager
-
 import doobie._
 import doobie.implicits._
-import cats._
 import cats.implicits._
 import cats.effect.IO
 
@@ -88,8 +85,10 @@ object SqlLiteDB {
     val sqlliteDriver = "org.sqlite.JDBC"
     val connectionString = s"jdbc:sqlite:$newPath$dbName"
 
-    DriverManagerTransactor[IO](
-      sqlliteDriver, connectionString
+
+    Transactor.fromDriverManager[IO](
+      sqlliteDriver,
+      connectionString
     )
   }
 
@@ -101,7 +100,6 @@ object SqlLiteDB {
     */
   def build(path: String): IO[SqlLiteDB] = {
     val newPath = if (path.endsWith("/")) path else s"$path/"
-//    val createDB = Task(s"sqlite3 $newPath$dbName".!)
 
     val transactor = createSqlLiteTransactor(newPath)
 
