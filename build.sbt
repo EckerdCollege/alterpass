@@ -4,7 +4,7 @@ enablePlugins(SystemdPlugin)
 organization := "edu.eckerd"
 name := "alterpass"
 version := "0.1.0-SNAPSHOT"
-scalaVersion := "2.12.3"
+scalaVersion := "2.12.4"
 
 
 val Http4sVersion = "0.18.0-M4"
