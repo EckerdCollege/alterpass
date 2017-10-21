@@ -23,10 +23,11 @@ case class SqlLiteDB(transactor: Transactor[IO]) {
   }
 
 
-  def writeConnection(username: String, random: String, time: Long): IO[Int] = {
-    val insert =sql"""INSERT INTO FORGOT_PASSWORD (username, linkExtension, created)
+  def writeConnection(username: String, email_code: String, random: String, time: Long): IO[Int] = {
+    val insert =sql"""INSERT INTO FORGOT_PASSWORD (username, email_code, linkExtension, created)
             VALUES (
               $username,
+              $email_code,
               $random,
               $time
             )
@@ -35,11 +36,12 @@ case class SqlLiteDB(transactor: Transactor[IO]) {
     insert.run.transact(transactor)
   }
 
-  def recoveryLink(username: String, url: String, time: Long): IO[Boolean] = {
+  def recoveryLink(username: String, url: String, time: Long): IO[Option[(String, String)]] = {
     // 1 Day Less Than Current Time
     val minTimeEpoch = time - 86400L
     val query = sql"""SELECT
-                  username
+                  username,
+                  email_code,
                   FROM FORGOT_PASSWORD
                   WHERE
                   linkExtension = $url
@@ -47,9 +49,9 @@ case class SqlLiteDB(transactor: Transactor[IO]) {
                   username = $username
                   AND
                   created >= $minTimeEpoch
-                  """.query[String]
+                  """.query[(String, String)]
 
-    query.list.transact(transactor).map(_.headOption.isDefined)
+    query.list.transact(transactor).map(_.headOption)
   }
 
   def removeRecoveryLink(username: String, url: String): IO[Int] = {
@@ -117,6 +119,7 @@ object SqlLiteDB {
     sql"""
        CREATE TABLE IF NOT EXISTS FORGOT_PASSWORD (
         username TEXT,
+        email_code TEXT,
         linkExtension TEXT,
         created INTEGER
        )
