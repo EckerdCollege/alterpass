@@ -1,13 +1,11 @@
 package edu.eckerd.alterpass.google
 
 import edu.eckerd.google.api.services.directory.Directory
-import fs2._
 import edu.eckerd.google.api.services.Scopes.ADMIN_DIRECTORY
 import edu.eckerd.google.api.services.directory.models.User
 import cats.effect.IO
 
 class GoogleAPI(
-                 domain: String,
                  serviceAccount: String,
                  administratorAccount: String,
                  credentialFilePath: String,
@@ -33,12 +31,11 @@ class GoogleAPI(
 object GoogleAPI {
 
   def build(
-             domain: String,
              serviceAccount: String,
              administratorAccount: String,
              credentialFilePath: String,
              applicationName: String): IO[GoogleAPI] = {
-    IO(new GoogleAPI(domain, serviceAccount, administratorAccount, credentialFilePath, applicationName))
+    IO(new GoogleAPI(serviceAccount, administratorAccount, credentialFilePath, applicationName))
   }
 
 

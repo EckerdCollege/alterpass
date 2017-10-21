@@ -26,7 +26,7 @@ libraryDependencies ++= Seq(
   "io.circe"        %% "circe-parser"         % CirceVersion,
   "org.tpolecat"    %% "doobie-core"          % DoobieVersion,
   "org.tpolecat"    %% "doobie-hikari"        % DoobieVersion,
-  "com.lihaoyi"     %% "scalatags"            % "0.6.5",
+  "com.lihaoyi"     %% "scalatags"            % "0.6.7",
   "org.xerial"      % "sqlite-jdbc"           % "3.19.3",
   "edu.eckerd"      %% "google-api-scala"     % "0.1.1",
   "ch.qos.logback"  %  "logback-classic"      % "1.2.1",

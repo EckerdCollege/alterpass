@@ -45,7 +45,6 @@ object AlterPassServer extends StreamApp[IO] {
     val sqlLiteT = SqlLiteDB.build(applicationConfig.sqlLiteConfig.absolutePath)
 
     val googleT = GoogleAPI.build(
-      applicationConfig.googleConfig.domain,
       applicationConfig.googleConfig.serviceAccount,
       applicationConfig.googleConfig.administratorAccount,
       applicationConfig.googleConfig.credentialFilePath,

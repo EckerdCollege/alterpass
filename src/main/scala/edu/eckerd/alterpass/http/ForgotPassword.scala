@@ -1,11 +1,8 @@
 package edu.eckerd.alterpass.http
 
 import java.time.Instant
-
 import cats.data.NonEmptyList
 import edu.eckerd.alterpass.models._
-import fs2._
-import cats._
 import cats.implicits._
 import cats.effect.IO
 import org.http4s.CacheDirective.`no-cache`

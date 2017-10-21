@@ -3,7 +3,6 @@ package edu.eckerd.alterpass.ldap
 import com.unboundid.ldap.sdk._
 import com.unboundid.util.ssl.{SSLUtil, TrustAllTrustManager}
 import cats.effect.IO
-import cats._
 import cats.implicits._
 
 class LdapAdmin(
