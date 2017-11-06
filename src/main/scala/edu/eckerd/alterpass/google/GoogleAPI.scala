@@ -1,16 +1,15 @@
 package edu.eckerd.alterpass.google
 
 import edu.eckerd.google.api.services.directory.Directory
-import fs2._
 import edu.eckerd.google.api.services.Scopes.ADMIN_DIRECTORY
 import edu.eckerd.google.api.services.directory.models.User
+import cats.effect.IO
 
 class GoogleAPI(
-                 domain: String,
                  serviceAccount: String,
                  administratorAccount: String,
                  credentialFilePath: String,
-                 applicationName: String)(implicit strategy: Strategy) {
+                 applicationName: String) {
 
   private val adminDirectory = Directory(
     serviceAccount,
@@ -20,28 +19,23 @@ class GoogleAPI(
     ADMIN_DIRECTORY
   )
 
-
-  def changePassword(user: String, password: String): Task[User] = {
-    Task(adminDirectory.users.get(user))
-      .flatMap(_.fold(Task.fail, Task.apply(_)))
+  def changePassword(user: String, password: String): IO[User] = {
+    IO(adminDirectory.users.get(user))
+      .flatMap(_.fold(IO.raiseError, IO.pure))
       .map(currentUser => currentUser.copy(password = Some(password)))
-      .flatMap( preUpdatedUser => Task(adminDirectory.users.update(preUpdatedUser)))
+      .flatMap( preUpdatedUser => IO(adminDirectory.users.update(preUpdatedUser)))
   }
-
 
 }
 
 object GoogleAPI {
 
   def build(
-             domain: String,
              serviceAccount: String,
              administratorAccount: String,
              credentialFilePath: String,
-             applicationName: String)(implicit strategy: Strategy): Task[GoogleAPI] = {
-    Task(new GoogleAPI(domain, serviceAccount, administratorAccount, credentialFilePath, applicationName)(strategy))
-
-
+             applicationName: String): IO[GoogleAPI] = {
+    IO(new GoogleAPI(serviceAccount, administratorAccount, credentialFilePath, applicationName))
   }
 
 

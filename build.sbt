@@ -4,12 +4,12 @@ enablePlugins(SystemdPlugin)
 organization := "edu.eckerd"
 name := "alterpass"
 version := "0.1.0-SNAPSHOT"
-scalaVersion := "2.12.3"
+scalaVersion := "2.12.4"
 
 
-val Http4sVersion = "0.17.0-RC2"
-val CirceVersion = "0.8.0"
-val DoobieVersion = "0.4.2"
+val Http4sVersion = "0.18.0-M4"
+val CirceVersion = "0.9.0-M1"
+val DoobieVersion = "0.5.0-M8"
 
 resolvers += Resolver.sonatypeRepo("releases")
 resolvers += Resolver.sonatypeRepo("snapshots")
@@ -24,9 +24,9 @@ libraryDependencies ++= Seq(
   "io.circe"        %% "circe-core"           % CirceVersion,
   "io.circe"        %% "circe-generic"        % CirceVersion,
   "io.circe"        %% "circe-parser"         % CirceVersion,
-  "org.tpolecat"    %% "doobie-core-cats"     % DoobieVersion,
-  "org.tpolecat"    %% "doobie-hikari-cats"   % DoobieVersion,
-  "com.lihaoyi"     %% "scalatags"            % "0.6.5",
+  "org.tpolecat"    %% "doobie-core"          % DoobieVersion,
+  "org.tpolecat"    %% "doobie-hikari"        % DoobieVersion,
+  "com.lihaoyi"     %% "scalatags"            % "0.6.7",
   "org.xerial"      % "sqlite-jdbc"           % "3.19.3",
   "edu.eckerd"      %% "google-api-scala"     % "0.1.1",
   "ch.qos.logback"  %  "logback-classic"      % "1.2.1",
@@ -35,7 +35,7 @@ libraryDependencies ++= Seq(
   "com.sun.mail"    % "javax.mail"            % "1.5.2",
   "org.specs2"      %% "specs2-core"          % "3.9.1"         % Test,
   "org.http4s"      %% "http4s-testing"       % Http4sVersion   % Test,
-  "org.tpolecat"    %% "doobie-specs2-cats"   % DoobieVersion   % Test
+  "org.tpolecat"    %% "doobie-specs2"        % DoobieVersion   % Test
 )
 
 // Options

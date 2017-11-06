@@ -1,7 +1,5 @@
 package edu.eckerd.alterpass
 
-import java.util.concurrent.{ExecutorService, Executors}
-
 import edu.eckerd.alterpass.Configuration.ApplicationConfig
 import edu.eckerd.alterpass.agingfile.AgingFile
 import edu.eckerd.alterpass.database.{OracleDB, SqlLiteDB}
@@ -9,25 +7,22 @@ import edu.eckerd.alterpass.google.GoogleAPI
 import edu.eckerd.alterpass.http._
 import edu.eckerd.alterpass.ldap.LdapAdmin
 import edu.eckerd.alterpass.models.Toolbox
-import fs2.{Strategy, Stream, Task}
+import fs2.Stream
 import org.http4s.util.StreamApp
 import org.http4s.server.blaze.BlazeBuilder
 import Configuration.loadAllFromEnv
 import edu.eckerd.alterpass.email.Emailer
+import cats.effect.IO
 
-object AlterPassServer extends StreamApp {
+object AlterPassServer extends StreamApp[IO] {
 
-  implicit val strategy = Strategy.fromExecutionContext(scala.concurrent.ExecutionContext.global)
-
-  override def stream(args: List[String]): Stream[Task, Nothing] = {
-    config
-      .flatMap(c => Stream.eval(createTools(c)))
-      .flatMap(constructServer)
+  def stream(args: List[String], requestShutdown: IO[Unit]): Stream[IO, StreamApp.ExitCode] = {
+    config.flatMap(c => Stream.eval(createTools(c))).flatMap(constructServer)
   }
 
-  val config: Stream[Task, ApplicationConfig] = Stream.eval(loadAllFromEnv())
+  val config: Stream[IO, ApplicationConfig] = Stream.eval(loadAllFromEnv())
 
-  def createTools(applicationConfig: ApplicationConfig)(implicit strategy: Strategy): Task[Toolbox] = {
+  def createTools(applicationConfig: ApplicationConfig): IO[Toolbox] = {
     val agingFile = AgingFile(applicationConfig.agingFileConfig.absolutePath)
 
     val ldapT = LdapAdmin.build(
@@ -50,14 +45,13 @@ object AlterPassServer extends StreamApp {
     val sqlLiteT = SqlLiteDB.build(applicationConfig.sqlLiteConfig.absolutePath)
 
     val googleT = GoogleAPI.build(
-      applicationConfig.googleConfig.domain,
       applicationConfig.googleConfig.serviceAccount,
       applicationConfig.googleConfig.administratorAccount,
       applicationConfig.googleConfig.credentialFilePath,
       applicationConfig.googleConfig.applicationName
     )
 
-    val blazeBuilder = BlazeBuilder.bindHttp(applicationConfig.httpConfig.port, applicationConfig.httpConfig.hostname)
+    val blazeBuilder = BlazeBuilder[IO].bindHttp(applicationConfig.httpConfig.port, applicationConfig.httpConfig.hostname)
 
     val email = Emailer(applicationConfig.emailConfig)
 
@@ -70,7 +64,7 @@ object AlterPassServer extends StreamApp {
 
   }
 
-  def constructServer(toolbox: Toolbox): Stream[Task, Nothing] = {
+  def constructServer(toolbox: Toolbox): Stream[IO, StreamApp.ExitCode] = {
     val changePasswordService = http.ChangePassword(toolbox)
     val forgotPasswordService = http.ForgotPassword(toolbox)
     val BlazeBuilder = toolbox.blazeBuilder

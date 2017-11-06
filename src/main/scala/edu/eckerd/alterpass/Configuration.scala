@@ -1,17 +1,10 @@
 package edu.eckerd.alterpass
 
 import cats.Apply
-import fs2.Task
 import cats.data.{ValidatedNel, _}
-import cats.implicits._
-import edu.eckerd.alterpass.agingfile.AgingFile
-import edu.eckerd.alterpass.database.{OracleDB, SqlLiteDB}
 import edu.eckerd.alterpass.errors.ConfigErrors
-import edu.eckerd.alterpass.google.GoogleAPI
-import edu.eckerd.alterpass.ldap.LdapAdmin
-import edu.eckerd.alterpass.models.Toolbox
 import errors.ConfigErrors._
-import org.http4s.server.blaze.BlazeBuilder
+import cats.effect.IO
 
 import scala.util.Properties.envOrNone
 import scala.util.Try
@@ -60,17 +53,17 @@ object Configuration {
   case class SqlLiteConfig(absolutePath: String)
   case class AgingFileConfig(absolutePath: String)
 
-  def loadAllFromEnv(): Task[ApplicationConfig] = {
+  def loadAllFromEnv(): IO[ApplicationConfig] = {
     getAppConfig(envOrNone).fold(nelTask, configTask)
   }
 
-  val nelTask : NonEmptyList[ConfigErrors] => Task[ApplicationConfig] = nel => {
+  val nelTask : NonEmptyList[ConfigErrors] => IO[ApplicationConfig] = nel => {
     val message = nel.map(_.message).toList.mkString("\n")
     val thrower = new Throwable(message)
-    val t : Task[ApplicationConfig] = Task.fail(thrower)
+    val t : IO[ApplicationConfig] = IO.raiseError(thrower)
     t
   }
-  val configTask: ApplicationConfig => Task[ApplicationConfig] = a => Task.now(a)
+  val configTask: ApplicationConfig => IO[ApplicationConfig] = a => IO.pure(a)
 
 
 
