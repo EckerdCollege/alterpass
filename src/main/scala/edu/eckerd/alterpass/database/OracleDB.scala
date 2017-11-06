@@ -19,7 +19,7 @@ case class OracleDB(host: String, port: Int, sid: String, hikariTransactor: Hika
 
 
     val q =sql"""SELECT
-             gPersonal.GOREMAL_EMAIL_ADDRESS as PERSONAL_EMAIL
+             gPersonal.GOREMAL_EMAIL_ADDRESS as PERSONAL_EMAIL,
              gSchool.GOREMAL_EMAL_CODE as EMAIL_CODE
         FROM GOREMAL gSchool
         INNER JOIN
