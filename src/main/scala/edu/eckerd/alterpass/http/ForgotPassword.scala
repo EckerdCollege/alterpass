@@ -17,8 +17,6 @@ import edu.eckerd.alterpass.errors.{AlterPassError, GenericError}
 import org.http4s.server.middleware.CORS
 import org.log4s.getLogger
 
-import scala.annotation.tailrec
-
 case class ForgotPassword(tools: Toolbox)(implicit strategy: Strategy) {
   import ForgotPassword._
 
@@ -76,7 +74,7 @@ object ForgotPassword {
     }
   }
 
-  def resetAllPasswords(tools: Toolbox, fpr: ForgotPasswordRecovery)(implicit strategy: Strategy): Task[Unit] = {
+  def resetAllPasswords(tools: Toolbox, fpr: ForgotPasswordRecovery, email_type: String)(implicit strategy: Strategy): Task[Unit] = {
     val ldapUserName = fpr.username.replaceAll("@eckerd.edu", "")
     val googleUserName = if (fpr.username.endsWith("@eckerd.edu")) fpr.username else s"${fpr.username}@eckerd.edu"
 
@@ -84,7 +82,10 @@ object ForgotPassword {
     val resetGoogle = tools.googleAPI.changePassword(googleUserName, fpr.newPass)
     val writeFile = tools.agingFile.writeUsernamePass(ldapUserName, fpr.newPass)
 
-    writeFile >> resetLDAP >> resetGoogle >> Task.now(())
+    email_type match {
+      case "ECA" => resetGoogle >> Task.now(())
+      case _ => writeFile >> resetLDAP >> resetGoogle >> Task.now(())
+    }
   }
 
 
@@ -117,13 +118,14 @@ object ForgotPassword {
         personalEmails <- tools.oracleDB.getPersonalEmails(fp.username)
         rem <- tools.sqlLiteDB.removeOlder(g())
         writeDbAtt <- {
-          if (personalEmails.nonEmpty){
-            tools.sqlLiteDB.writeConnection(fp.username, rand, g()).attempt
-          } else {
-            Task.fail(new Throwable(s"No Emails Returned for ${fp.username}")).attempt
-          }
+          NonEmptyList.fromList(personalEmails).fold[Task[fs2.util.Attempt[Int]]](
+            (Task(1) >> Task.fail(new Throwable(s"No Emails Returned for ${fp.username}"))).attempt
+          )({nel: NonEmptyList[(String, String)] =>
+            tools.sqlLiteDB.writeConnection(fp.username, nel.head._2, rand, g()).attempt
+          })
         }
-        sendEmailAtt <- writeDbAtt.fold( e => Task.fail(e), _ => tools.email.sendNotificationEmail(personalEmails, rand)).attempt
+        sendEmailAtt <- writeDbAtt.fold( e => Task.fail(e), _ =>
+          tools.email.sendNotificationEmail(personalEmails.map(_._1), rand)).attempt
         resp <- {
           sendEmailAtt.fold(
             e =>
@@ -136,7 +138,7 @@ object ForgotPassword {
               ),
             _ =>
               Task(logger.info(s"Forgot Password Link Written for ${fp.username} - Sent To: $personalEmails")) >>
-                Created(ForgotPasswordReturn(personalEmails.map(concealEmail)).asJson)
+                Created(ForgotPasswordReturn(personalEmails.map(_._1).map(concealEmail)).asJson)
           )
         }
         } yield resp
@@ -168,20 +170,19 @@ object ForgotPassword {
     for {
       fpr <- request.as(jsonOf[ForgotPasswordRecovery])
       rem <- tools.sqlLiteDB.removeOlder(g())
-      bool <- tools.sqlLiteDB.recoveryLink(fpr.username, url, g())
+      option <- tools.sqlLiteDB.recoveryLink(fpr.username, url, g())
       resp <- {
-        if (bool)
-          resetAllPasswords(tools, fpr) >>
-          tools.sqlLiteDB.removeRecoveryLink(fpr.username, url) >>
+        option.fold(Task(
+          logger.error(s"Request to Reset ${fpr.username} with incorrect link. Address : ${request.remoteAddr}")
+        ) >>
+          BadRequest()
+        ) { case (_, email_type) =>
+          resetAllPasswords(tools, fpr, email_type) >>
+            tools.sqlLiteDB.removeRecoveryLink(fpr.username, url) >>
             Task(logger.info(s"Passwords Reset for - ${fpr.username}")) >>
             Created(ForgotPasswordReceived(fpr.username).asJson)
-        else
-          Task(
-            logger.error(s"Request to Reset ${fpr.username} with incorrect link. Address : ${request.remoteAddr}")
-          ) >>
-          BadRequest()
+        }
       }
-
     } yield resp
   }
 
