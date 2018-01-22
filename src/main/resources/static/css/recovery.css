@@ -6,6 +6,11 @@ body {
   background-size: cover;
 }
 
+html{
+  position:relative; 
+  min-height: 100%;
+}
+
 h1, h2, h3, h4, h5, h6 {
   text-transform: uppercase;
   letter-spacing: 3px;
@@ -38,15 +43,11 @@ label { font-family: dincond-bold;
 		color: #000;
  }
 
-button { font-family: din2;
+button { font-family: din;
 		
  }
  
- #footercopy {
-text-align:center; font-size: 0.9em; font-family: din; text-transform: none; letter-spacing: normal;
-color: rgb(84, 88, 90);
-visibility: visible;
-}
+
 	
 
 hr {
@@ -136,19 +137,17 @@ hr {
   margin: 0 auto 0;
 }
 
+ #footercopy {
+text-align:center; font-size: 0.9em; font-family: din; text-transform: none; letter-spacing: normal;
+color: rgb(84, 88, 90);
+visibility: visible;
+}
+
 footer {
   background: #fff;
   background: rgba(255,255,255,0.9);
-/* position: absolute; */
     bottom: 0;
-    /* margin-bottom: -50px;  */
-/* 
-    margin-top : 40px;
- */
     width: 100%;
- /* 	visibility: hidden; */
-    /* height: 250px; */
-     visibility: visible;
 }
 
  
@@ -158,26 +157,21 @@ footer p {
 }
 
 
-
-@media screen and (min-width: 40.5em) {
+@media only all and (min-width: 768px) and (min-height: 768px) {
   footer {
-    visibility: visible;
- 	/* height: auto; */
- 	position: absolute;
+	height: auto;
+bottom: 0;
+width: 100%;
 
-  }
+}
   footer p {
   margin: 0;
   padding: 25px 0;
-/*   visibility: visible; */ }
-
+  }
 #footercopy {
 text-align:left;
-
 }
-
-
-}
+  }
 
 
 
@@ -264,3 +258,6 @@ text-align:left;
         clear: both;
     }
 }
+
+
+ 
