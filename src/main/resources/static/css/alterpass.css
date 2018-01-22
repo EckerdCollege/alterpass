@@ -6,28 +6,10 @@ body {
   background-size: cover;
 }
 
-
-
-
-#badresult {
- font-size: 1.05em;
-  color: #ff3333;
-  font-weight: 400;
-  line-height: 1.6;
-  float: left;
-  padding: 6px;
+html{
+  position:relative; 
+  min-height: 100%;
 }
-
-
-#goodresult {
- font-size: 1.05em;
-  color: #00cc00;
-  font-weight: 400;
-  line-height: 1.6;
-  float: left;
-  padding: 0px;
-}
-
 
 h1, h2, h3, h4, h5, h6 {
   text-transform: uppercase;
@@ -56,8 +38,6 @@ p {
   font-family: din;
 }
 
-
-
 label { font-family: dincond-bold;
 		font-size: 1.55em;
 		color: #000;
@@ -66,6 +46,9 @@ label { font-family: dincond-bold;
 button { font-family: din;
 		
  }
+ 
+
+	
 
 hr {
   border-color: #999999;
@@ -77,8 +60,24 @@ hr {
   display: none;
 }
 
+#badresult {
+ font-size: 1.05em;
+  color: #ff3333;
+  font-weight: 400;
+  line-height: 1.6;
+  float: left;
+  padding: 3px;
+}
 
 
+#goodresult {
+ font-size: 1.05em;
+  color: #00cc00;
+  font-weight: 400;
+  line-height: 1.6;
+  float: left;
+  padding: 10px;
+}
 
 .navbar-brand {
   text-transform: uppercase;
@@ -126,6 +125,7 @@ hr {
   font-weight: 400;
 }
 
+
 .img-border {
   float: none;
   margin: 0 auto 0;
@@ -137,76 +137,42 @@ hr {
   margin: 0 auto 0;
 }
 
+ #footercopy {
+text-align:center; font-size: 0.9em; font-family: din; text-transform: none; letter-spacing: normal;
+color: rgb(84, 88, 90);
+visibility: visible;
+}
+
 footer {
   background: #fff;
   background: rgba(255,255,255,0.9);
-/* position: absolute; */
     bottom: 0;
-    /* margin-bottom: -50px;  */
-/* 
-    margin-top : 40px;
- */
     width: 100%;
- /* 	visibility: hidden; */
-    /* height: 250px; */
 }
 
-/* 
-.content {
-
-    height: 80vh;
-    overflow: hidden;
-}
  
- */
 footer p {
   margin: 0;
   padding: 0px 0;
-  /* visibility: hidden; */
 }
 
-footer a {
-/*   visibility: hidden; */
- }
-   
 
-#footercopy {
-text-align:center; font-size: 0.9em; font-family: din; text-transform: none; letter-spacing: normal;
-color: rgb(84, 88, 90);
-}
-	
-	
-
-
-@media screen and (min-width: 40.5em) {
+@media only all and (min-width: 768px) and (min-height: 768px) {
   footer {
-    visibility: visible;
- 	/* height: auto; */
- 	position: absolute;
+	height: auto;
+bottom: 0;
+width: 100%;
 
-  }
+}
   footer p {
   margin: 0;
   padding: 25px 0;
-/*   visibility: visible; */ }
-
+  }
 #footercopy {
 text-align:left;
-
 }
-}
-
-/* 
-@media only all and (min-width: 768px) and (min-height: 768px) {
-  footer {
-    visibility: visible;
- 	/* height: auto; */
-	height: auto;
-	bottom: 0;
- 	position: absolute;
-
   }
- */
+
 
 
 
@@ -222,14 +188,6 @@ text-align:left;
   padding: 30px 0 10px;
   color: #fff;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-}
-
-
-
-footer a {
-  visibility: visible;
- 
-   
 }
 
 .top-divider {
@@ -300,3 +258,6 @@ footer a {
         clear: both;
     }
 }
+
+
+ 
