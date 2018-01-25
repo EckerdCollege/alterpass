@@ -41,7 +41,7 @@ case class SqlLiteDB(transactor: Transactor[IO]) {
     val minTimeEpoch = time - 86400L
     val query = sql"""SELECT
                   username,
-                  email_code,
+                  email_code
                   FROM FORGOT_PASSWORD
                   WHERE
                   linkExtension = $url
