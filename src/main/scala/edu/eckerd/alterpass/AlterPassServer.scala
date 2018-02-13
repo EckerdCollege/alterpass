@@ -8,11 +8,12 @@ import edu.eckerd.alterpass.http._
 import edu.eckerd.alterpass.ldap.LdapAdmin
 import edu.eckerd.alterpass.models.Toolbox
 import fs2.Stream
-import org.http4s.util.StreamApp
 import org.http4s.server.blaze.BlazeBuilder
 import Configuration.loadAllFromEnv
 import edu.eckerd.alterpass.email.Emailer
 import cats.effect.IO
+import scala.concurrent.ExecutionContext.Implicits.global
+import fs2.StreamApp
 
 object AlterPassServer extends StreamApp[IO] {
 

@@ -7,9 +7,9 @@ version := "0.1.0-SNAPSHOT"
 scalaVersion := "2.12.4"
 
 
-val Http4sVersion = "0.18.0-M4"
-val CirceVersion = "0.9.0-M1"
-val DoobieVersion = "0.5.0-M8"
+val Http4sVersion = "0.18.0"
+val CirceVersion = "0.9.1"
+val DoobieVersion = "0.5.0"
 
 resolvers += Resolver.sonatypeRepo("releases")
 resolvers += Resolver.sonatypeRepo("snapshots")
