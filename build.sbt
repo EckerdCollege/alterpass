@@ -7,9 +7,9 @@ version := "0.1.0-SNAPSHOT"
 scalaVersion := "2.12.4"
 
 
-val Http4sVersion = "0.18.0-M4"
-val CirceVersion = "0.9.0-M1"
-val DoobieVersion = "0.5.0-M8"
+val Http4sVersion = "0.18.0"
+val CirceVersion = "0.9.1"
+val DoobieVersion = "0.5.0"
 
 resolvers += Resolver.sonatypeRepo("releases")
 resolvers += Resolver.sonatypeRepo("snapshots")
@@ -28,7 +28,7 @@ libraryDependencies ++= Seq(
   "org.tpolecat"    %% "doobie-hikari"        % DoobieVersion,
   "com.lihaoyi"     %% "scalatags"            % "0.6.7",
   "org.xerial"      % "sqlite-jdbc"           % "3.19.3",
-  "edu.eckerd"      %% "google-api-scala"     % "0.1.1",
+  "edu.eckerd"      %% "google-api-scala"     % "0.1.2",
   "ch.qos.logback"  %  "logback-classic"      % "1.2.1",
   "com.unboundid"   %  "unboundid-ldapsdk"    % "4.0.0",
   "javax.mail"      % "javax.mail-api"        % "1.5.6",
