@@ -28,7 +28,7 @@ libraryDependencies ++= Seq(
   "org.tpolecat"    %% "doobie-hikari"        % DoobieVersion,
   "com.lihaoyi"     %% "scalatags"            % "0.6.7",
   "org.xerial"      % "sqlite-jdbc"           % "3.19.3",
-  "edu.eckerd"      %% "google-api-scala"     % "0.1.1",
+  "edu.eckerd"      %% "google-api-scala"     % "0.1.2",
   "ch.qos.logback"  %  "logback-classic"      % "1.2.1",
   "com.unboundid"   %  "unboundid-ldapsdk"    % "4.0.0",
   "javax.mail"      % "javax.mail-api"        % "1.5.6",
