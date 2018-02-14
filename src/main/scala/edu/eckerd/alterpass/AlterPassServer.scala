@@ -9,7 +9,6 @@ import edu.eckerd.alterpass.ldap.LdapAdmin
 import edu.eckerd.alterpass.models.Toolbox
 import fs2.Stream
 import org.http4s.server.blaze.BlazeBuilder
-import Configuration.loadAllFromEnv
 import edu.eckerd.alterpass.email.Emailer
 import cats.effect.IO
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -21,7 +20,7 @@ object AlterPassServer extends StreamApp[IO] {
     config.flatMap(c => Stream.eval(createTools(c))).flatMap(constructServer)
   }
 
-  val config: Stream[IO, ApplicationConfig] = Stream.eval(loadAllFromEnv())
+  val config: Stream[IO, ApplicationConfig] = Stream.eval(IO(pureconfig.loadConfigOrThrow[ApplicationConfig]("edu.eckerd.alterpass")))
 
   def createTools(applicationConfig: ApplicationConfig): IO[Toolbox] = {
     val agingFile = AgingFile(applicationConfig.agingFileConfig.absolutePath)
