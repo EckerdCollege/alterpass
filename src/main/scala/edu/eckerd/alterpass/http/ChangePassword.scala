@@ -1,5 +1,4 @@
-/*
-package edu.eckerd.alterpass.http
+/*package edu.eckerd.alterpass.http
 
 import cats.data.NonEmptyList
 import edu.eckerd.alterpass.models.{ChangePasswordReceived, Toolbox}
@@ -14,6 +13,22 @@ import org.log4s.getLogger
 import cats.effect.IO
 import org.http4s.circe._
 
+object ChangePasswordService{
+  private val prefix = "changepw"
+  val mountPrefix = "/" + prefix
+  
+  
+  def service[F[_]](implicit Effect: Effect[F], A: AgingFile[F], L: Ldap[F], G: GoogleAPI[F]): HttpService[F] = {
+    val dsl = new Http4sDsl[F]{}
+    import dsl._
+    
+    HttpService[F]{
+    
+
+
+    }
+  }
+}
 
 case class ChangePassword(toolbox: Toolbox) {
 
@@ -23,6 +38,7 @@ case class ChangePassword(toolbox: Toolbox) {
 
   val service = CORS[IO] {
     HttpService[IO]{
+
 
       // Form Page For Change Password, taking Email/Username, Current Password, and New Password
       case req @ GET -> Root =>

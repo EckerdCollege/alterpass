@@ -13,6 +13,8 @@ trait GoogleAPI[F[_]]{
 }
 
 object GoogleAPI {
+  def apply[F[_]](implicit ev: GoogleAPI[F]): GoogleAPI[F] = ev
+
   private val logger = org.log4s.getLogger
 
 

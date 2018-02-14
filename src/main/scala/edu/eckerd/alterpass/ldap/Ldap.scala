@@ -13,6 +13,8 @@ trait Ldap[F[_]] {
 
 object Ldap {
 
+  def apply[F[_]](implicit ev: Ldap[F]): Ldap[F] = ev
+
   private val logger = org.log4s.getLogger
 
   def impl[F[_]: Sync](config: LdapConfig): Stream[F, Ldap[F]] = if (config.enabled) {

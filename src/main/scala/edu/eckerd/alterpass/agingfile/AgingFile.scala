@@ -13,6 +13,8 @@ trait AgingFile[F[_]]{
 }
 
 object AgingFile{
+  def apply[F[_]](implicit ev: AgingFile[F]): AgingFile[F] = ev
+
   def impl[F[_]: Effect](config: AgingFileConfig): AgingFile[F] = new AgingFile[F]{
     override def writeUsernamePass(user: String, pass: String): F[Unit] = 
       Stream(show"${user}:${pass}\n")

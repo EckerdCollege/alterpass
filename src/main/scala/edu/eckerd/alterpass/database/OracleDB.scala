@@ -17,6 +17,8 @@ trait OracleDB[F[_]]{
 
 object OracleDB {
 
+  def apply[F[_]](implicit ev: OracleDB[F]): OracleDB[F] = ev
+
   private val logger = org.log4s.getLogger
   
   def impl[F[_]: Effect](oracleConfig: OracleConfig): Stream[F, OracleDB[F]] = {

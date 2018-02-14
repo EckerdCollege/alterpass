@@ -17,6 +17,7 @@ trait SqlLiteDB[F[_]]{
 }
 
 object SqlLiteDB {
+  def apply[F[_]](implicit ev: SqlLiteDB[F]): SqlLiteDB[F] = ev
 
   def impl[F[_]: Async](config: SqlLiteConfig): Stream[F, SqlLiteDB[F]] = for {
     transactor <- Stream(createSqlLiteTransactor[F](config.absolutePath)).covary[F]

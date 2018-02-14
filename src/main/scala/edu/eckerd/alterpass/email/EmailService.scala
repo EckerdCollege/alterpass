@@ -10,6 +10,8 @@ trait EmailService[F[_]]{
 }
 
 object EmailService {
+    def apply[F[_]](implicit ev: EmailService[F]): EmailService[F] = ev
+
     private val logger = org.log4s.getLogger
 
     def impl[F[_]: Sync](config: EmailConfig): Stream[F, EmailService[F]] = 
