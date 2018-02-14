@@ -1,78 +1,89 @@
 package edu.eckerd.alterpass
 
-import edu.eckerd.alterpass.Configuration.ApplicationConfig
+import edu.eckerd.alterpass.models.Configuration.ApplicationConfig
 import edu.eckerd.alterpass.agingfile.AgingFile
 import edu.eckerd.alterpass.database.{OracleDB, SqlLiteDB}
 import edu.eckerd.alterpass.google.GoogleAPI
 import edu.eckerd.alterpass.http._
-import edu.eckerd.alterpass.ldap.LdapAdmin
-import edu.eckerd.alterpass.models.Toolbox
-import fs2.Stream
+import edu.eckerd.alterpass.ldap.Ldap
+import edu.eckerd.alterpass.models._
+import fs2._
 import org.http4s.server.blaze.BlazeBuilder
-import edu.eckerd.alterpass.email.Emailer
-import cats.effect.IO
-import scala.concurrent.ExecutionContext.Implicits.global
-import fs2.StreamApp
+import edu.eckerd.alterpass.email.EmailService
+import scala.concurrent.ExecutionContext
+import cats.effect._
 
-object AlterPassServer extends StreamApp[IO] {
+object AlterPassServer {
 
-  def stream(args: List[String], requestShutdown: IO[Unit]): Stream[IO, StreamApp.ExitCode] = {
-    config.flatMap(c => Stream.eval(createTools(c))).flatMap(constructServer)
-  }
+  def stream[F[_]](implicit F: Effect[F], ec: ExecutionContext): Stream[F, StreamApp.ExitCode] = for {
+    appConfig <- Stream.eval(Sync[F].delay(pureconfig.loadConfigOrThrow[ApplicationConfig]("edu.eckerd.alterpass")))
+    agingFile = AgingFile.impl[F](appConfig.agingFileConfig)
+    oracleDb <- OracleDB.impl[F](appConfig.oracleConfig)
+    sqlLite <- SqlLiteDB.impl[F](appConfig.sqlLiteConfig)
+    emailService <- EmailService.impl[F](appConfig.emailConfig)
+    googleApi <- GoogleAPI.impl[F](appConfig.googleConfig)
+    ldap <- Ldap.impl[F](appConfig.ldapConfig)
 
-  val config: Stream[IO, ApplicationConfig] = Stream.eval(IO(pureconfig.loadConfigOrThrow[ApplicationConfig]("edu.eckerd.alterpass")))
+    out <- BlazeBuilder[F]
+    .bindHttp(appConfig.httpConfig.port, appConfig.httpConfig.hostname)
+    .mountService(StaticSite.service[F])
+    .serve
+  } yield  out
 
-  def createTools(applicationConfig: ApplicationConfig): IO[Toolbox] = {
-    val agingFile = AgingFile(applicationConfig.agingFileConfig.absolutePath)
 
-    val ldapT = LdapAdmin.build(
-      "ldaps",
-      applicationConfig.ldapConfig.host,
-      636,
-      applicationConfig.ldapConfig.baseDN,
-      applicationConfig.ldapConfig.searchAttribute,
-      applicationConfig.ldapConfig.user,
-      applicationConfig.ldapConfig.pass
-    )
-    val oracleT = OracleDB.build(
-      applicationConfig.oracleConfig.host,
-      applicationConfig.oracleConfig.port,
-      applicationConfig.oracleConfig.sid,
-      applicationConfig.oracleConfig.username,
-      applicationConfig.oracleConfig.pass
-    )
+  // val config: Stream[IO, ApplicationConfig] = 
 
-    val sqlLiteT = SqlLiteDB.build(applicationConfig.sqlLiteConfig.absolutePath)
+  // def createTools(applicationConfig: ApplicationConfig): IO[Toolbox] = {
+  //   val agingFile = AgingFile(applicationConfig.agingFileConfig.absolutePath)
 
-    val googleT = GoogleAPI.build(
-      applicationConfig.googleConfig.serviceAccount,
-      applicationConfig.googleConfig.administratorAccount,
-      applicationConfig.googleConfig.credentialFilePath,
-      applicationConfig.googleConfig.applicationName
-    )
+  //   val ldapT = LdapAdmin.build(
+  //     "ldaps",
+  //     applicationConfig.ldapConfig.host,
+  //     636,
+  //     applicationConfig.ldapConfig.baseDN,
+  //     applicationConfig.ldapConfig.searchAttribute,
+  //     applicationConfig.ldapConfig.user,
+  //     applicationConfig.ldapConfig.pass
+  //   )
+  //   val oracleT = OracleDB.build(
+  //     applicationConfig.oracleConfig.host,
+  //     applicationConfig.oracleConfig.port,
+  //     applicationConfig.oracleConfig.sid,
+  //     applicationConfig.oracleConfig.username,
+  //     applicationConfig.oracleConfig.pass
+  //   )
 
-    val blazeBuilder = BlazeBuilder[IO].bindHttp(applicationConfig.httpConfig.port, applicationConfig.httpConfig.hostname)
+  //   val sqlLiteT = SqlLiteDB.build(applicationConfig.sqlLiteConfig.absolutePath)
 
-    val email = Emailer(applicationConfig.emailConfig)
+  //   val googleT = GoogleAPI.build(
+  //     applicationConfig.googleConfig.serviceAccount,
+  //     applicationConfig.googleConfig.administratorAccount,
+  //     applicationConfig.googleConfig.credentialFilePath,
+  //     applicationConfig.googleConfig.applicationName
+  //   )
 
-    for {
-      ldap <- ldapT
-      oracle <- oracleT
-      google <- googleT
-      sqlLite <- sqlLiteT
-    } yield Toolbox(agingFile, ldap, oracle, sqlLite, google, blazeBuilder, email)
+  //   val blazeBuilder = BlazeBuilder[IO]
 
-  }
+  //   val email = Emailer(applicationConfig.emailConfig)
 
-  def constructServer(toolbox: Toolbox): Stream[IO, StreamApp.ExitCode] = {
-    val changePasswordService = http.ChangePassword(toolbox)
-    val forgotPasswordService = http.ForgotPassword(toolbox)
-    val BlazeBuilder = toolbox.blazeBuilder
+  //   for {
+  //     ldap <- ldapT
+  //     oracle <- oracleT
+  //     google <- googleT
+  //     sqlLite <- sqlLiteT
+  //   } yield Toolbox(agingFile, ldap, oracle, sqlLite, google, blazeBuilder, email)
 
-    BlazeBuilder
-      .mountService(changePasswordService.service, changePasswordService.prefix)
-      .mountService(forgotPasswordService.service, forgotPasswordService.prefix)
-      .mountService(StaticSite.service)
-      .serve
-  }
+  // }
+
+  // def constructServer(toolbox: Toolbox): Stream[IO, StreamApp.ExitCode] = {
+  //   val changePasswordService = http.ChangePassword(toolbox)
+  //   val forgotPasswordService = http.ForgotPassword(toolbox)
+  //   val BlazeBuilder = toolbox.blazeBuilder
+
+  //   BlazeBuilder
+  //     .mountService(changePasswordService.service, changePasswordService.prefix)
+  //     .mountService(forgotPasswordService.service, forgotPasswordService.prefix)
+  //     .mountService(StaticSite.service)
+  //     .serve
+  // }
 }

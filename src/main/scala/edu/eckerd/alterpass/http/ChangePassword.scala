@@ -1,3 +1,4 @@
+/*
 package edu.eckerd.alterpass.http
 
 import cats.data.NonEmptyList
@@ -57,3 +58,4 @@ case class ChangePassword(toolbox: Toolbox) {
 
 
 }
+*/

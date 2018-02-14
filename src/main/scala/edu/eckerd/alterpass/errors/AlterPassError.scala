@@ -39,34 +39,6 @@ object AlterPassError {
 
 }
 
-sealed trait ConfigErrors extends AlterPassError
-
-object ConfigErrors {
-  case class OracleConfigError(message: String) extends ConfigErrors {
-    val errorType = "OracleConfig"
-  }
-  case class SqlliteConfigError(message: String) extends ConfigErrors {
-    val errorType = "SqlLiteConfig"
-  }
-  case class GoogleConfigError(message: String) extends ConfigErrors {
-    val errorType = "GoogleConfigError"
-  }
-  case class HttpConfigError(message: String) extends ConfigErrors {
-    val errorType: String = "HttpConfigError"
-  }
-  case class AgingFileConfigError(message: String) extends ConfigErrors {
-    val errorType = "AgingFileConfigError"
-  }
-
-  case class LdapConfigError(message: String) extends ConfigErrors {
-    val errorType: String = "LdapConfigError"
-  }
-
-  case class EmailConfigError(message: String) extends ConfigErrors {
-    val errorType: String = "EmailConfigError"
-  }
-}
-
 case class OracleError(message: String) extends AlterPassError {
   val errorType = "Oracle Error"
 }

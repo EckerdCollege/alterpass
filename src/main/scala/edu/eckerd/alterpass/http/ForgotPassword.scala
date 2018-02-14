@@ -1,3 +1,4 @@
+/*
 package edu.eckerd.alterpass.http
 
 import java.time.Instant
@@ -20,7 +21,7 @@ case class ForgotPassword(tools: Toolbox) {
   import ForgotPassword._
 
   // Prefix Will Be Prepended to All Roots of this Service
-  val prefix = "/forgotpw"
+  val prefix = "forgotpw"
 
   val service = CORS[IO] {
     HttpService[IO] {
@@ -197,3 +198,4 @@ object ForgotPassword {
     forgotPasswordRecovery(tools, request, url, g)
   }
 }
+*/

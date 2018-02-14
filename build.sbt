@@ -26,6 +26,7 @@ libraryDependencies ++= Seq(
   "io.circe"        %% "circe-parser"         % CirceVersion,
   "org.tpolecat"    %% "doobie-core"          % DoobieVersion,
   "org.tpolecat"    %% "doobie-hikari"        % DoobieVersion,
+  "com.beachape"    %% "enumeratum"           % "1.5.12",
   "com.github.pureconfig" %% "pureconfig"     % "0.9.0",
   "com.lihaoyi"     %% "scalatags"            % "0.6.7",
   "org.xerial"      % "sqlite-jdbc"           % "3.19.3",

@@ -1,9 +1,7 @@
-package edu.eckerd.alterpass
+package edu.eckerd.alterpass.models
 
 import cats.Apply
 import cats.data.{ValidatedNel, _}
-import edu.eckerd.alterpass.errors.ConfigErrors
-import errors.ConfigErrors._
 import cats.effect.IO
 
 import scala.util.Properties.envOrNone
@@ -63,9 +61,5 @@ object Configuration {
                           pass: String,
                           baseLink: String
                         )
-
-
-
-
 
 }
