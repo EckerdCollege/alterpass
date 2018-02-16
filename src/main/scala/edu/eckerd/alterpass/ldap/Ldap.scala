@@ -38,13 +38,13 @@ object Ldap {
   } else {
     new Ldap[F]{
       override def checkBind(uid:String,pass:String) : F[Boolean] = 
-        Sync[F].delay(logger.info(s"Ldap Is Not Enabled Acting As Though $uid was authenticated")).as(true)
+        Sync[F].delay(logger.info(s"Ldap Disabled: Acting As Though $uid was authenticated")).as(true)
 
       override def setUserPassword(uid: String, newPass: String): F[Int] =
-        Sync[F].delay(logger.info(s"Ldap Is Not Enabled Acting As Though $uid had password set successfully")).as(0)
+        Sync[F].delay(logger.info(s"Ldap Disabled: Acting As Though $uid had password set successfully")).as(0)
 
       override def changeUserPassword(uid: String, oldPass: String, newPass: String): F[Int] =
-        Sync[F].delay(logger.info(s"Ldap Is Not Enabled Acting As Though $uid had password set successfully")).as(0)
+        Sync[F].delay(logger.info(s"Ldap Disabled: Acting As Though $uid had password set successfully")).as(0)
     }.pure[Stream[F, ?]]
   }
 

@@ -44,7 +44,7 @@ object GoogleAPI {
       new GoogleAPI[F]{
         override def changePassword(user: String, password: String): F[Unit] = 
           Sync[F].delay(logger.info(
-            s"GoogleAPI is disabled. Password would have been changed for $user if it was enabled"
+            s"GoogleAPI Disabled: Password would have been changed for User-$user if it was enabled"
           ))
       }
     )
