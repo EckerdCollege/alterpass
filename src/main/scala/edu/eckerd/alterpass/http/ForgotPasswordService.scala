@@ -8,6 +8,7 @@ import org.http4s.circe._
 import org.http4s.dsl._ 
 import edu.eckerd.alterpass.models._
 import edu.eckerd.alterpass.ldap._
+import edu.eckerd.alterpass.database._
 import org.http4s.CacheDirective.`no-cache`
 import org.http4s.headers.`Cache-Control`
 import _root_.io.circe._
@@ -32,6 +33,8 @@ object ForgotPasswordService {
         .flatMap(fpr => ForgotPassword[F].initiatePasswordReset(fpr.username))
         .flatMap(fpr => Created(fpr.asJson))
         .handleErrorWith{
+          case SqlLiteDB.RateLimiteCheckFailed => BadRequest()
+          case OracleDB.NoPersonalEmailsFound => BadRequest()
           case _ => InternalServerError()
         }
 
@@ -48,6 +51,7 @@ object ForgotPasswordService {
         .flatMap(fpr => ForgotPassword[F].resetPassword(fpr.username, fpr.newPass, randomExtension))
         .flatMap(_ => Created())
         .handleErrorWith{
+          case SqlLiteDB.MissingRecoveryLink => BadRequest()
           case _ => InternalServerError()
         }
     }

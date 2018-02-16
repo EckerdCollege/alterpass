@@ -26,7 +26,7 @@ object EmailService {
       Stream(
         new EmailService[F]{
             override def sendNotificationEmail(emails: List[String], random: String): F[Unit] = {
-                Sync[F].delay(logger.info(s"Email Service Disabled: Email Would Have Been Sent to $emails"))
+                Sync[F].delay(logger.info(s"Email Service Disabled: Email Would Have Been Sent to $emails - Extension: $random"))
             }
 
         }

@@ -9,9 +9,9 @@ import cats.effect._
 import fs2._
 
 trait SqlLiteDB[F[_]]{
-  def rateLimitCheck(username: String, time: Long): F[Boolean]
+  def rateLimitCheck(username: String, time: Long): F[Unit]
   def writeConnection(username: String, email_code: EmailCode, random: String, time: Long): F[Int]
-  def recoveryLink(username: String, url: String, time: Long): F[Option[UserWithEmailCode]]
+  def recoveryLink(username: String, url: String, time: Long): F[UserWithEmailCode]
   def removeRecoveryLink(username: String, url: String): F[Int]
   def removeOlder(time: Long): F[Int]
 }
@@ -23,7 +23,7 @@ object SqlLiteDB {
     transactor <- Stream(createSqlLiteTransactor[F](config.absolutePath)).covary[F]
     _ <- Stream.eval(createTable.run.transact(transactor))
   } yield new SqlLiteDB[F]{
-    override def rateLimitCheck(username: String, time: Long): F[Boolean] = {
+    override def rateLimitCheck(username: String, time: Long): F[Unit] = {
       // 1 Day Less Than Current Time
       val minTimeEpoch = time - 900L
       val query = sql"""SELECT
@@ -35,7 +35,7 @@ object SqlLiteDB {
                     created >= $minTimeEpoch
                     """.query[String]
 
-      query.to[List].transact(transactor).map(_.headOption.isEmpty)
+      query.to[List].transact(transactor).flatMap(_.headOption.fold(().pure[F])(_ =>  Sync[F].raiseError[Unit](RateLimiteCheckFailed)))
     }
     override def writeConnection(username: String, email_code: EmailCode, random: String, time: Long): F[Int] = {
       val insert =sql"""INSERT INTO FORGOT_PASSWORD (username, email_code, linkExtension, created)
@@ -50,7 +50,7 @@ object SqlLiteDB {
       insert.run.transact(transactor)
     }
 
-    override def recoveryLink(username: String, url: String, time: Long): F[Option[UserWithEmailCode]] = {
+    override def recoveryLink(username: String, url: String, time: Long): F[UserWithEmailCode] = {
       // 1 Day Less Than Current Time
       val minTimeEpoch = time - 86400L
       val query = sql"""SELECT
@@ -66,6 +66,7 @@ object SqlLiteDB {
                     """.query[UserWithEmailCode]
 
       query.option.transact(transactor)
+      .flatMap(_.fold(Sync[F].raiseError[UserWithEmailCode](MissingRecoveryLink))(_.pure[F]))
     }
 
     override def removeRecoveryLink(username: String, url: String): F[Int] = {
@@ -116,4 +117,6 @@ object SqlLiteDB {
        )
        """.update
 
+  case object MissingRecoveryLink extends Throwable
+  case object RateLimiteCheckFailed extends Throwable
 }
