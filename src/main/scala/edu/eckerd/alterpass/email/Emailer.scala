@@ -3,8 +3,8 @@ package edu.eckerd.alterpass.email
 import javax.mail._
 import java.util.{Date, Properties}
 import javax.mail.internet.{InternetAddress, MimeMessage}
-import edu.eckerd.alterpass.Configuration.EmailConfig
-import cats.effect.IO
+import edu.eckerd.alterpass.models.Configuration.EmailConfig
+import cats.effect.Sync
 
 case class Emailer(config: EmailConfig) {
 
@@ -71,7 +71,7 @@ case class Emailer(config: EmailConfig) {
   }
 
 
-  def sendNotificationEmail(emails: List[String], random: String): IO[Unit] = IO{
+  def sendNotificationEmail[F[_]: Sync](emails: List[String], random: String): F[Unit] = Sync[F].delay{
     if (emails.nonEmpty) {
       val message = new MimeMessage(session)
       val from = new InternetAddress(userEmail)
@@ -83,7 +83,6 @@ case class Emailer(config: EmailConfig) {
       message.setRecipients(Message.RecipientType.TO, emails.mkString(", "))
       message.setSubject("Eckerd College Password Reset")
       message.setContent(htmlMessage(random), "text/html; charset=utf-8")
-      //    message.setText(htmlMessage(random), "utf-8", "html")
       message.setSentDate(new Date())
 
       Transport.send(message)
