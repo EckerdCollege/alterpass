@@ -46,9 +46,13 @@ object OracleDB {
     
     } else {
       new OracleDB[F]{
-        override def getPersonalEmails(username: String): F[NonEmptyList[Email]] = 
-        Sync[F].delay(logger.info("Oracle DB Disabled: Generating Fake Email"))
-          .as(NonEmptyList.of(Email("testingEmail@eckerd.edu", EmailCode.CA)))
+        override def getPersonalEmails(username: String): F[NonEmptyList[Email]] = {
+          val code = if (username.contains("eca")) EmailCode.ECA 
+            else if (username.contains("cas")) EmailCode.CAS
+            else EmailCode.CA
+          Sync[F].delay(logger.info("Oracle DB Disabled: Generating Fake Email"))
+            .as(NonEmptyList.of(Email(s"testing${username}@eckerd.edu", code)))
+        }
       }.pure[Stream[F, ?]]
 
     }
