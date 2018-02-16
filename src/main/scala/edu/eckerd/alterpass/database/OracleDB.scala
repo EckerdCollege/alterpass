@@ -3,6 +3,7 @@ package edu.eckerd.alterpass.database
 import edu.eckerd.alterpass.models.Configuration.OracleConfig
 import edu.eckerd.alterpass.models.{Email, EmailCode}
 import cats._
+import cats.data.NonEmptyList
 import cats.implicits._
 import doobie._
 import doobie.implicits._
@@ -11,7 +12,7 @@ import cats.effect._
 import fs2._
 
 trait OracleDB[F[_]]{
-  def getPersonalEmails(username: String): F[List[Email]]
+  def getPersonalEmails(username: String): F[NonEmptyList[Email]]
 }
 
 object OracleDB {
@@ -39,14 +40,15 @@ object OracleDB {
         )
 
       } yield new OracleDB[F]{
-        override def getPersonalEmails(username: String): F[List[Email]] = getPersonalEmailsP[F](username)(Monad[F], transactor)
+        override def getPersonalEmails(username: String): F[NonEmptyList[Email]] = getPersonalEmailsP[F](username)(Monad[F], transactor)
+        .flatMap(l => NonEmptyList.fromList(l).fold(Sync[F].raiseError[NonEmptyList[Email]](NoPersonalEmailsFound))(_.pure[F]))
       } 
     
     } else {
       new OracleDB[F]{
-        override def getPersonalEmails(username: String): F[List[Email]] = 
-        Sync[F].delay(logger.info("Oracle DB Disabled - Generating Fake Email"))
-          .as(List(Email("testingEmail@eckerd.edu", EmailCode.CA)))
+        override def getPersonalEmails(username: String): F[NonEmptyList[Email]] = 
+        Sync[F].delay(logger.info("Oracle DB Disabled: Generating Fake Email"))
+          .as(NonEmptyList.of(Email("testingEmail@eckerd.edu", EmailCode.CA)))
       }.pure[Stream[F, ?]]
 
     }
@@ -77,29 +79,9 @@ object OracleDB {
       q.to[List].transact(T)
   }
 
+  case object NoPersonalEmailsFound extends Throwable
+
 
 
 }
 
-// case class OracleDB(host: String, port: Int, sid: String, hikariTransactor: HikariTransactor[IO]) {
-
-
-
-
-// }
-
-// object OracleDB {
- 
-
-//   def build(
-//              host: String,
-//              port: Int,
-//              sid: String,
-//              username: String,
-//              password: String
-//            ): IO[OracleDB] = {
-//     createOracleTransactor(host, port, sid, username, password)
-//       .map(hikariTransactor => OracleDB(host, port, sid, hikariTransactor))
-//   }
-
-// }

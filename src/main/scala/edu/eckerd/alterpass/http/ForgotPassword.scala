@@ -1,6 +1,74 @@
-/*
 package edu.eckerd.alterpass.http
 
+import cats.effect._
+import edu.eckerd.alterpass.agingfile._
+import edu.eckerd.alterpass.database._
+import edu.eckerd.alterpass.email._
+import edu.eckerd.alterpass.ldap._
+import edu.eckerd.alterpass.google._
+import edu.eckerd.alterpass.models._
+import cats._
+import cats.implicits._
+
+trait ForgotPassword[F[_]]{
+  def initiatePasswordReset(username: String): F[ForgotPasswordReturn]
+  def resetPassword(userName: String, newPass: String, extension: String): F[Unit]
+}
+
+object ForgotPassword {
+  def apply[F[_]](implicit ev: ForgotPassword[F]): ForgotPassword[F] = ev
+
+  private val logger = org.log4s.getLogger
+
+  def impl[F[_]](
+    implicit F: Effect[F], 
+    L: Ldap[F], 
+    A: AgingFile[F],
+    G: GoogleAPI[F],
+    O: OracleDB[F],
+    S: SqlLiteDB[F],
+    E: EmailService[F]
+  ): ForgotPassword[F] = new ForgotPassword[F] {
+
+    override def initiatePasswordReset(username: String): F[ForgotPasswordReturn] = ???
+    override def resetPassword(userName: String, newPass: String, extension: String): F[Unit] = ???
+
+
+  }
+
+  private def concealEmail(email: String): String = {
+    def obscure(text: String) = "*" * text.length
+    val validEmail = "(.*)@(.*)".r
+    val shortMailbox = "(.{1,2})".r
+    val longMailbox = "(.)(.)(.*)".r
+
+    email match {
+      case validEmail(shortMailbox(m), domain) =>
+        s"${obscure(m)}@$domain"
+      case validEmail(longMailbox(first, second, middle), domain) =>
+        s"$first$second${obscure(middle)}@$domain"
+      case other => obscure(other)
+    }
+  }
+
+  private def randomStringFromCharList(length: Int, chars: Seq[Char]): String = {
+    val sb = new StringBuilder
+    for (i <- 1 to length) {
+      val randomNum = scala.util.Random.nextInt(chars.length)
+      sb.append(chars(randomNum))
+    }
+    sb.toString
+  }
+
+  private def randomAlphaNumeric(length: Int): String = {
+    val chars = ('a' to 'z') ++ ('A' to 'Z') ++ ('1' to '9')
+    randomStringFromCharList(length, chars)
+  }
+
+}
+
+
+/*
 import java.time.Instant
 import cats.data.NonEmptyList
 import edu.eckerd.alterpass.models._
@@ -59,21 +127,7 @@ object ForgotPassword {
 
   private val logger = getLogger
 
-  def concealEmail(email: String): String = {
-    def obscure(text: String) = "*" * text.length
-    val validEmail = "(.*)@(.*)".r
-    val shortMailbox = "(.{1,2})".r
-    val longMailbox = "(.)(.)(.*)".r
-
-    email match {
-      case validEmail(shortMailbox(m), domain) =>
-        s"${obscure(m)}@$domain"
-      case validEmail(longMailbox(first, second, middle), domain) =>
-        s"$first$second${obscure(middle)}@$domain"
-      case other => obscure(other)
-    }
-  }
-
+  
   def resetAllPasswords(tools: Toolbox, fpr: ForgotPasswordRecovery, email_type: String): IO[Unit] = {
     val ldapUserName = fpr.username.replaceAll("@eckerd.edu", "")
     val googleUserName = if (fpr.username.endsWith("@eckerd.edu")) fpr.username else s"${fpr.username}@eckerd.edu"
@@ -90,19 +144,7 @@ object ForgotPassword {
   }
 
 
-  def randomStringFromCharList(length: Int, chars: Seq[Char]): String = {
-    val sb = new StringBuilder
-    for (i <- 1 to length) {
-      val randomNum = scala.util.Random.nextInt(chars.length)
-      sb.append(chars(randomNum))
-    }
-    sb.toString
-  }
-
-  def randomAlphaNumeric(length: Int): String = {
-    val chars = ('a' to 'z') ++ ('A' to 'Z') ++ ('1' to '9')
-    randomStringFromCharList(length, chars)
-  }
+  
 
   def forgotPassWordReceived(
                               tools: Toolbox,

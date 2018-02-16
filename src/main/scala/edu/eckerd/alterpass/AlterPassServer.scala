@@ -26,11 +26,13 @@ object AlterPassServer {
     ldap <- Ldap.impl[F](appConfig.ldapConfig)
 
     cp = ChangePassword.impl(F, ldap, agingFile, googleApi)
+    fp = ForgotPassword.impl(F, ldap, agingFile, googleApi, oracleDb, sqlLite, emailService)
     
     staticService = StaticSite.service[F]
     cpService = ChangePasswordService.service(F, cp)
+    fpService = ForgotPasswordService.service(F, fp)
 
-    bareService = cpService <+> staticService
+    bareService = cpService <+> fpService <+> staticService
 
     service = CORS(bareService)
 
