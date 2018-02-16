@@ -3,7 +3,6 @@ package edu.eckerd.alterpass.google
 import edu.eckerd.alterpass.models.Configuration._
 import edu.eckerd.google.api.services.directory.Directory
 import edu.eckerd.google.api.services.Scopes.ADMIN_DIRECTORY
-import edu.eckerd.google.api.services.directory.models.User
 import cats.implicits._
 import cats.effect._
 import fs2._

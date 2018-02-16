@@ -48,4 +48,6 @@ object Ldap {
     }.pure[Stream[F, ?]]
   }
 
+  case object BindFailure extends Throwable
+
 }

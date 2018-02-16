@@ -8,7 +8,6 @@ import doobie._
 import doobie.implicits._
 import doobie.hikari._
 import cats.effect._
-import enumeratum._
 import fs2._
 
 trait OracleDB[F[_]]{

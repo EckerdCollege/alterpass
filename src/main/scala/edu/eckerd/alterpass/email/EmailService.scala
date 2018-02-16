@@ -1,6 +1,5 @@
 package edu.eckerd.alterpass.email
 
-import cats.implicits._
 import cats.effect._
 import fs2._
 import edu.eckerd.alterpass.models.Configuration._
@@ -10,13 +9,13 @@ trait EmailService[F[_]]{
 }
 
 object EmailService {
-    def apply[F[_]](implicit ev: EmailService[F]): EmailService[F] = ev
+  def apply[F[_]](implicit ev: EmailService[F]): EmailService[F] = ev
 
-    private val logger = org.log4s.getLogger
+  private val logger = org.log4s.getLogger
 
-    def impl[F[_]: Sync](config: EmailConfig): Stream[F, EmailService[F]] = 
+  def impl[F[_]: Sync](config: EmailConfig): Stream[F, EmailService[F]] = 
     if (config.enabled){
-      Stream.eval(Sync[F].delay(Emailer(config))).map{ emailer => 
+        Stream.eval(Sync[F].delay(Emailer(config))).map{ emailer => 
           new EmailService[F]{
               override def sendNotificationEmail(emails: List[String], random: String): F[Unit] = {
                   emailer.sendNotificationEmail[F](emails, random)

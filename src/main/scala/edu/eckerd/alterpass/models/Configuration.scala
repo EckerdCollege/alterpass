@@ -1,12 +1,5 @@
 package edu.eckerd.alterpass.models
 
-import cats.Apply
-import cats.data.{ValidatedNel, _}
-import cats.effect.IO
-
-import scala.util.Properties.envOrNone
-import scala.util.Try
-
 object Configuration {
 
   case class ApplicationConfig(
