@@ -1,59 +1,37 @@
 package edu.eckerd.alterpass.http
 
-import cats.data.NonEmptyList
-import edu.eckerd.alterpass.models.{ChangePasswordReceived, Toolbox}
-import fs2.{Strategy, Task}
-import org.http4s.CacheDirective.`no-cache`
-import org.http4s._
-import org.http4s.dsl._
-import org.http4s.headers.`Cache-Control`
-import org.http4s.circe._
-import fs2.interop.cats._
 import cats.implicits._
-import org.http4s.server.middleware.CORS
 import org.log4s.getLogger
+import cats.effect._
+import edu.eckerd.alterpass.agingfile._
+import edu.eckerd.alterpass.ldap._
+import edu.eckerd.alterpass.google._
 
+trait ChangePassword[F[_]]{
+  def changePassword(username: String, oldPass: String, newPass: String): F[Unit]
+}
 
-case class ChangePassword(toolbox: Toolbox)(implicit strategy: Strategy) {
-
+object ChangePassword {
+  def apply[F[_]](implicit ev: ChangePassword[F]) = ev
   private val logger = getLogger
 
-  val prefix = "/changepw"
+  def impl[F[_]](implicit F: Effect[F], L: Ldap[F], A: AgingFile[F], G: GoogleAPI[F]): ChangePassword[F] = new ChangePassword[F]{
+    def changePassword(username: String, oldPass: String, newPass: String): F[Unit] = {
+      val ldapUserName = username.replaceAll("@eckerd.edu", "")
+      val googleUserName = if (username.endsWith("@eckerd.edu")) username else s"${username}@eckerd.edu"
 
-  val service = CORS {
-    HttpService {
-
-      // Form Page For Change Password, taking Email/Username, Current Password, and New Password
-      case req @ GET -> Root =>
-        StaticFile.fromResource(s"/pages/$prefix.html", Some(req))
-          .map(_.putHeaders())
-          .map(_.putHeaders(`Cache-Control`(NonEmptyList.of(`no-cache`()))))
-          .getOrElseF(NotFound())
-
-      // Post
-      case req @ POST -> Root =>
-        for {
-          cpw <- req.as(jsonOf[ChangePasswordReceived])
-          bool <- toolbox.ldapAdmin.checkBind(cpw.username, cpw.oldPass)
-          resp <- if (bool){
-            val ldapUserName = cpw.username.replaceAll("@eckerd.edu", "")
-            val googleUserName = if (cpw.username.endsWith("@eckerd.edu")) cpw.username else s"${cpw.username}@eckerd.edu"
-
-            for {
-              agingFile <- toolbox.agingFile.writeUsernamePass(ldapUserName, cpw.newPass)
-              setPass <- toolbox.ldapAdmin.setUserPassword(ldapUserName, cpw.newPass)
-              google <- toolbox.googleAPI.changePassword(googleUserName, cpw.newPass)
-              _ <- Task(logger.info(s"Password Changed for ${cpw.username}"))
-              resp <- Created()
-            } yield resp
-          } else {
-            Task(logger.info(s"Error Incorrect Current Password : ${cpw.username}")) >>
-            BadRequest()
-          }
-
-        } yield resp
+      Ldap[F].checkBind(username, oldPass).ifM(
+        {
+          for {
+            _ <- AgingFile[F].writeUsernamePass(ldapUserName, newPass)
+            _ <- Ldap[F].setUserPassword(ldapUserName, newPass)
+            _ <- GoogleAPI[F].changePassword(googleUserName, newPass)
+            out <- Sync[F].delay(logger.debug(s"Password Changed For $username"))
+          } yield out
+        },
+        Sync[F].delay(logger.info(s"Failed Change Password Attempt - Invalid Old Password for $username")) *>
+        Sync[F].raiseError[Unit](Ldap.BindFailure)
+      )
     }
   }
-
-
 }

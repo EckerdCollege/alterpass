@@ -4,25 +4,24 @@ import fs2._
 import fs2.io._
 import java.nio.file.StandardOpenOption._
 import java.nio.file.FileSystems
+import cats.implicits._
+import cats.effect._
+import edu.eckerd.alterpass.models.Configuration.AgingFileConfig
 
+trait AgingFile[F[_]]{
+  def writeUsernamePass(user: String, pass: String): F[Unit]
+}
 
-case class AgingFile(filePath: String) {
+object AgingFile{
+  def apply[F[_]](implicit ev: AgingFile[F]): AgingFile[F] = ev
 
-  def writeUsernamePass(user: String, pass: String)(implicit strategy: Strategy): Task[Unit] = {
-    writeUsernamePass(
-      user,
-      pass,
-      file.writeAll(FileSystems.getDefault.getPath(filePath), List(CREATE, WRITE, APPEND))
-    )(strategy)
+  def impl[F[_]: Effect](config: AgingFileConfig): AgingFile[F] = new AgingFile[F]{
+    override def writeUsernamePass(user: String, pass: String): F[Unit] = 
+      Stream(show"${user}:${pass}\n")
+        .covary[F]
+        .through(text.utf8Encode)
+        .to(file.writeAll[F](FileSystems.getDefault.getPath(config.absolutePath), List(CREATE, WRITE, APPEND)))
+        .compile
+        .drain
   }
-
-  def writeUsernamePass(user: String, pass: String, sink: Sink[Task, Byte])(implicit strategy: Strategy): Task[Unit] = {
-    val combineText = s"$user:$pass\n"
-    Stream(combineText)
-      .covary[Task]
-      .through(text.utf8Encode)
-      .to(sink)
-      .run
-  }
-
 }

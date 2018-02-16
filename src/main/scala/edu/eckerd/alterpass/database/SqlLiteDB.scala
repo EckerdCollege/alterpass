@@ -1,122 +1,113 @@
 package edu.eckerd.alterpass.database
 
-import doobie.imports._
-import fs2.Task
-import fs2.Strategy
-import fs2.interop.cats._
+import edu.eckerd.alterpass.models._
+import edu.eckerd.alterpass.models.Configuration._
+import doobie._
+import doobie.implicits._
 import cats.implicits._
+import cats.effect._
+import fs2._
 
-case class SqlLiteDB(transactor: Transactor[Task]) {
-
-  def rateLimitCheck(username: String, time: Long): Task[Boolean] = {
-    // 1 Day Less Than Current Time
-    val minTimeEpoch = time - 900L
-    val query = sql"""SELECT
-                  username
-                  FROM FORGOT_PASSWORD
-                  WHERE
-                  username = $username
-                  AND
-                  created >= $minTimeEpoch
-                  """.query[String]
-
-    query.list.transact(transactor).map(_.headOption.isEmpty)
-  }
-
-
-  def writeConnection(username: String, email_code: String, random: String, time: Long): Task[Int] = {
-    val insert =sql"""INSERT INTO FORGOT_PASSWORD (username, email_code, linkExtension, created)
-            VALUES (
-              $username,
-              $email_code,
-              $random,
-              $time
-            )
-         """.update
-
-    insert.run.transact(transactor)
-  }
-
-  def recoveryLink(username: String, url: String, time: Long): Task[Option[(String, String)]] = {
-    // 1 Day Less Than Current Time
-    val minTimeEpoch = time - 86400L
-    val query = sql"""SELECT
-                  username,
-                  email_code
-                  FROM FORGOT_PASSWORD
-                  WHERE
-                  linkExtension = $url
-                  AND
-                  username = $username
-                  AND
-                  created >= $minTimeEpoch
-                  """.query[(String, String)]
-
-    query.list.transact(transactor).map(_.headOption)
-  }
-
-  def removeRecoveryLink(username: String, url: String): Task[Int] = {
-    val update = sql"""DELETE FROM FORGOT_PASSWORD
-                  WHERE
-                  linkExtension = $url
-                  AND
-                  username = $username
-                  """.update
-
-    update.run.transact(transactor)
-  }
-
-  def removeOlder(time: Long): Task[Int] = {
-    val minTimeEpoch = time - 86400L
-    val update : Update0 = sql"""DELETE FROM FORGOT_PASSWORD
-                  WHERE
-                  created < $minTimeEpoch
-                  """.update
-    update.run.transact(transactor)
-  }
-
-
+trait SqlLiteDB[F[_]]{
+  def rateLimitCheck(username: String, time: Long): F[Unit]
+  def writeConnection(username: String, email_code: EmailCode, random: String, time: Long): F[Int]
+  def recoveryLink(username: String, url: String, time: Long): F[UserWithEmailCode]
+  def removeRecoveryLink(username: String, url: String): F[Int]
+  def removeOlder(time: Long): F[Int]
 }
 
 object SqlLiteDB {
+  def apply[F[_]](implicit ev: SqlLiteDB[F]): SqlLiteDB[F] = ev
 
-  val dbName = "alterpass.db"
+  def impl[F[_]: Async](config: SqlLiteConfig): Stream[F, SqlLiteDB[F]] = for {
+    transactor <- Stream(createSqlLiteTransactor[F](config.absolutePath)).covary[F]
+    _ <- Stream.eval(createTable.run.transact(transactor))
+  } yield new SqlLiteDB[F]{
+    override def rateLimitCheck(username: String, time: Long): F[Unit] = {
+      // 1 Day Less Than Current Time
+      val minTimeEpoch = time - 900L
+      val query = sql"""SELECT
+                    username
+                    FROM FORGOT_PASSWORD
+                    WHERE
+                    username = $username
+                    AND
+                    created >= $minTimeEpoch
+                    """.query[String]
 
-  def createSqlLiteTransactor(path: String): Transactor[Task] = {
+      query.to[List].transact(transactor).flatMap(_.headOption.fold(().pure[F])(_ =>  Sync[F].raiseError[Unit](RateLimiteCheckFailed)))
+    }
+    override def writeConnection(username: String, email_code: EmailCode, random: String, time: Long): F[Int] = {
+      val insert =sql"""INSERT INTO FORGOT_PASSWORD (username, email_code, linkExtension, created)
+              VALUES (
+                $username,
+                $email_code,
+                $random,
+                $time
+              )
+          """.update
+
+      insert.run.transact(transactor)
+    }
+
+    override def recoveryLink(username: String, url: String, time: Long): F[UserWithEmailCode] = {
+      // 1 Day Less Than Current Time
+      val minTimeEpoch = time - 86400L
+      val query = sql"""SELECT
+                    username,
+                    email_code
+                    FROM FORGOT_PASSWORD
+                    WHERE
+                    linkExtension = $url
+                    AND
+                    username = $username
+                    AND
+                    created >= $minTimeEpoch
+                    """.query[UserWithEmailCode]
+
+      query.option.transact(transactor)
+      .flatMap(_.fold(Sync[F].raiseError[UserWithEmailCode](MissingRecoveryLink))(_.pure[F]))
+    }
+
+    override def removeRecoveryLink(username: String, url: String): F[Int] = {
+      val update = sql"""DELETE FROM FORGOT_PASSWORD
+                    WHERE
+                    linkExtension = $url
+                    AND
+                    username = $username
+                    """.update
+
+      update.run.transact(transactor)
+    }
+
+    override def removeOlder(time: Long): F[Int] = {
+      val minTimeEpoch = time - 86400L
+      val update : Update0 = sql"""DELETE FROM FORGOT_PASSWORD
+                    WHERE
+                    created < $minTimeEpoch
+                    """.update
+      update.run.transact(transactor)
+    }
+  }
+
+  
+
+  private def createSqlLiteTransactor[F[_]: Async](path: String): Transactor[F] = {
 
     val newPath = if (path.endsWith("/")) path else s"$path/"
     val sqlliteDriver = "org.sqlite.JDBC"
+    val dbName = "alterpass.db"
     val connectionString = s"jdbc:sqlite:$newPath$dbName"
 
-    DriverManagerTransactor[Task](
-      sqlliteDriver, connectionString
+
+    Transactor.fromDriverManager[F](
+      sqlliteDriver,
+      connectionString
     )
   }
 
-  /**
-    * Requires sqlite3 to be installed on System
-    *
-    * @param path The Path To The Location Where the Database Should Be Created
-    * @param strategy The Execution Strategy
-    * @return A SqlLiteDb Ready for Use
-    */
-  def build(path: String)(implicit strategy: Strategy): Task[SqlLiteDB] = {
-    val newPath = if (path.endsWith("/")) path else s"$path/"
-//    val createDB = Task(s"sqlite3 $newPath$dbName".!)
 
-    val transactor = createSqlLiteTransactor(newPath)
-
-
-    val createTableT = createTable
-      .run
-      .transact(transactor)
-
-     createTableT >> Task(SqlLiteDB(transactor))
-  }
-
-
-
-  val createTable: Update0 =
+  private val createTable: Update0 =
     sql"""
        CREATE TABLE IF NOT EXISTS FORGOT_PASSWORD (
         username TEXT,
@@ -126,4 +117,6 @@ object SqlLiteDB {
        )
        """.update
 
+  case object MissingRecoveryLink extends Throwable
+  case object RateLimiteCheckFailed extends Throwable
 }

@@ -1,48 +1,53 @@
 package edu.eckerd.alterpass.google
 
+import edu.eckerd.alterpass.models.Configuration._
 import edu.eckerd.google.api.services.directory.Directory
-import fs2._
 import edu.eckerd.google.api.services.Scopes.ADMIN_DIRECTORY
-import edu.eckerd.google.api.services.directory.models.User
+import cats.implicits._
+import cats.effect._
+import fs2._
 
-class GoogleAPI(
-                 domain: String,
-                 serviceAccount: String,
-                 administratorAccount: String,
-                 credentialFilePath: String,
-                 applicationName: String)(implicit strategy: Strategy) {
-
-  private val adminDirectory = Directory(
-    serviceAccount,
-    administratorAccount,
-    credentialFilePath,
-    applicationName,
-    ADMIN_DIRECTORY
-  )
-
-
-  def changePassword(user: String, password: String): Task[User] = {
-    Task(adminDirectory.users.get(user))
-      .flatMap(_.fold(Task.fail, Task.apply(_)))
-      .map(currentUser => currentUser.copy(password = Some(password)))
-      .flatMap( preUpdatedUser => Task(adminDirectory.users.update(preUpdatedUser)))
-  }
-
-
+trait GoogleAPI[F[_]]{
+  def changePassword(user: String, password: String): F[Unit]
 }
 
 object GoogleAPI {
+  def apply[F[_]](implicit ev: GoogleAPI[F]): GoogleAPI[F] = ev
 
-  def build(
-             domain: String,
-             serviceAccount: String,
-             administratorAccount: String,
-             credentialFilePath: String,
-             applicationName: String)(implicit strategy: Strategy): Task[GoogleAPI] = {
-    Task(new GoogleAPI(domain, serviceAccount, administratorAccount, credentialFilePath, applicationName)(strategy))
+  private val logger = org.log4s.getLogger
 
+
+  def impl[F[_]: Sync](config: GoogleConfig): Stream[F, GoogleAPI[F]] = if (config.enabled){
+    for {
+      adminDirectory <- Stream.eval(Sync[F].delay(
+        Directory(
+          config.serviceAccount,
+          config.administratorAccount,
+          config.credentialFilePath,
+          config.applicationName,
+          ADMIN_DIRECTORY
+        )
+      ))
+    } yield new GoogleAPI[F]{
+      override def changePassword(user: String, password: String): F[Unit] = for {
+        _ <- Sync[F].delay(logger.trace(s"Attempting to get User Info From Google For $user"))
+        user <- Sync[F].delay(adminDirectory.users.get(user)).rethrow
+        _ <- Sync[F].delay(logger.trace(s"User Info Returned From Google, Updating User Password in Google for $user"))
+        updatedUser = user.copy(password = Some(password))
+        success <- Sync[F].delay(adminDirectory.users.update(updatedUser)).void
+        _ <- Sync[F].delay(logger.trace(s"User Password Successfully Updated in Google for $user"))
+      } yield success
+    }
+
+  } else {
+    Stream(
+      new GoogleAPI[F]{
+        override def changePassword(user: String, password: String): F[Unit] = 
+          Sync[F].delay(logger.info(
+            s"GoogleAPI Disabled: Password would have been changed for User-$user if it was enabled"
+          ))
+      }
+    )
 
   }
-
-
 }

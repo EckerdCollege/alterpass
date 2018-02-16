@@ -2,9 +2,10 @@ package edu.eckerd.alterpass.ldap
 
 import com.unboundid.ldap.sdk._
 import com.unboundid.util.ssl.{SSLUtil, TrustAllTrustManager}
-import fs2.{Strategy, Task}
+import cats.effect._
+import cats.implicits._
 
-class LdapAdmin(
+private[ldap] case class LdapAdmin(
                  ldapProtocol: String,
                  ldapHost: String,
                  ldapPort: Int,
@@ -12,7 +13,7 @@ class LdapAdmin(
                  searchAttribute: String,
                  bindDN: String,
                  bindPass: String
-          )(implicit strategy: Strategy) {
+          ) {
   val poolSize = 5
 
   val serverAddresses = Array(ldapHost)
@@ -37,14 +38,14 @@ class LdapAdmin(
       null
   }
 
-  private def search(uid: String): Task[List[SearchResultEntry]] = {
+  private def search[F[_]: Sync](uid: String): F[List[SearchResultEntry]] = {
     import scala.collection.JavaConverters._
     val request = new SearchRequest(
       userBaseDN,
       SearchScope.SUB,
       Filter.createEqualityFilter(searchAttribute,uid)
     )
-    Task(
+    Sync[F].delay(
       connectionPool.search(request).getSearchEntries.asScala.toList
     )
   }
@@ -54,63 +55,49 @@ class LdapAdmin(
     entries.headOption.map(_.getDN)
 
 
-  def bind(uid: String, pass:String): Task[Int] = {
+  def bind[F[_]: Sync](uid: String, pass:String): F[Int] = {
     val userDNT = search(uid).map(getFirstDN)
     userDNT.flatMap{
       case Some(dn) =>
         val bindRequest = new SimpleBindRequest(dn, pass)
-        Task(
+        Sync[F].delay(
           connectionPool
             .bindAndRevertAuthentication(bindRequest)
             .getResultCode
             .intValue()
-        ).attemptFold(e => 1, i => i)
-      case None => Task(1)
+        )
+          .attemptT
+          .fold(_ => 1, identity)
+      case None => Sync[F].pure(1)
     }
   }
 
-  def checkBind(uid:String,pass:String) : Task[Boolean] = {
-    bind(uid, pass).map {
+  def checkBind[F[_]: Sync](uid:String,pass:String) : F[Boolean] = {
+    bind[F](uid, pass).map {
       case 0 => true
       case _ => false
     }
   }
 
-  def getUserDN(uid: String): Task[Option[String]] = search(uid).map(getFirstDN)
+  def getUserDN[F[_]: Sync](uid: String): F[Option[String]] = search[F](uid).map(getFirstDN)
 
 
-  def setUserPassword(uid: String, newPass: String): Task[Int] = {
-    val userDNOpt: Task[Option[String]] = getUserDN(uid)
+  def setUserPassword[F[_]: Sync](uid: String, newPass: String): F[Int] = {
+    val userDNOpt: F[Option[String]] = getUserDN[F](uid)
     val modification = new Modification(ModificationType.REPLACE, "userPassword", newPass)
-    val changePassword : Option[String] => Task[Option[LDAPResult]] =
-      userDN => Task(userDN.map(dn => connectionPool.modify(dn, modification)))
+    val changePassword : Option[String] => F[Option[LDAPResult]] =
+      userDN => Sync[F].delay(userDN.map(dn => connectionPool.modify(dn, modification)))
     val result = userDNOpt.flatMap(changePassword)
     result.map(_.map(_.getResultCode.intValue).getOrElse(1))
   }
 
-  def changeUserPassword(uid: String, oldPass: String, newPass: String): Task[Int] = {
-    checkBind(uid, oldPass).flatMap{
+  def changeUserPassword[F[_]: Sync](uid: String, oldPass: String, newPass: String): F[Int] = {
+    checkBind[F](uid, oldPass).flatMap{
       case true => setUserPassword(uid, newPass)
-      case false => Task.now(1)
+      case false => Sync[F].pure(1)
     }
   }
 
-  def shutdown : Task[Unit] = Task.delay(connectionPool.close())
-
-}
-
-object LdapAdmin {
-
-
-  def build(ldapProtocol: String,
-            ldapHost: String,
-            ldapPort: Int,
-            userBaseDN: String,
-            searchAttribute: String,
-            bindDN: String,
-            bindPass: String)(implicit strategy: Strategy): Task[LdapAdmin] = {
-
-    Task(new LdapAdmin(ldapProtocol, ldapHost, ldapPort, userBaseDN, searchAttribute, bindDN, bindPass))
-  }
+  def shutdown[F[_]: Sync] : F[Unit] = Sync[F].delay(connectionPool.close())
 
 }

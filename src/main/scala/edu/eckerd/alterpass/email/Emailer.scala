@@ -1,15 +1,10 @@
 package edu.eckerd.alterpass.email
 
-import javax.mail.{internet, _}
+import javax.mail._
 import java.util.{Date, Properties}
-import javax.mail.internet.{InternetAddress, MimeMessage, MimeMultipart}
-
-import cats.data.NonEmptyList
-import edu.eckerd.alterpass.Configuration.EmailConfig
-import fs2.Task
-import fs2.Strategy
-
-
+import javax.mail.internet.{InternetAddress, MimeMessage}
+import edu.eckerd.alterpass.models.Configuration.EmailConfig
+import cats.effect.Sync
 
 case class Emailer(config: EmailConfig) {
 
@@ -21,7 +16,7 @@ case class Emailer(config: EmailConfig) {
   val userEmail: String = if (user.endsWith("@eckerd.edu")) user else s"$user@eckerd.edu"
 
   private val properties: Properties = {
-    var props = new Properties()
+    val props = new Properties() // As in We don't reassing, but we do change internal structure with following calls.
     props.put("mail.smtp.auth", "true")
     props.put("mail.smtp.starttls.enable", "true")
     props.put("mail.smtp.host", smtpServer)
@@ -76,7 +71,7 @@ case class Emailer(config: EmailConfig) {
   }
 
 
-  def sendNotificationEmail(emails: List[String], random: String)(implicit strategy: Strategy): Task[Unit] = Task.now{
+  def sendNotificationEmail[F[_]: Sync](emails: List[String], random: String): F[Unit] = Sync[F].delay{
     if (emails.nonEmpty) {
       val message = new MimeMessage(session)
       val from = new InternetAddress(userEmail)
@@ -88,7 +83,6 @@ case class Emailer(config: EmailConfig) {
       message.setRecipients(Message.RecipientType.TO, emails.mkString(", "))
       message.setSubject("Eckerd College Password Reset")
       message.setContent(htmlMessage(random), "text/html; charset=utf-8")
-      //    message.setText(htmlMessage(random), "utf-8", "html")
       message.setSentDate(new Date())
 
       Transport.send(message)
