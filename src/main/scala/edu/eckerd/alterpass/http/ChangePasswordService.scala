@@ -13,6 +13,8 @@ import org.http4s.headers.`Cache-Control`
 import _root_.io.circe._
 
 object ChangePasswordService{
+
+  private val logger = org.log4s.getLogger
   
   
   def service[F[_]](implicit F: Sync[F], C: ChangePassword[F]): HttpService[F] = {
@@ -27,7 +29,13 @@ object ChangePasswordService{
           .getOrElseF(NotFound())
       case req @ POST -> Root / "changepw" =>
         req.decodeJson[ChangePasswordReceived]
-        .flatMap(cpw => ChangePassword[F].changePassword(cpw.username, cpw.oldPass, cpw.newPass))
+        .flatMap(cpw => 
+          ChangePassword[F].changePassword(cpw.username, cpw.oldPass, cpw.newPass)
+            .handleErrorWith(e => 
+              Sync[F].delay(logger.error(e)(s"Error With Change Password for ${cpw.username}")) *> 
+              Sync[F].raiseError[Unit](e)
+            )
+        )
         .flatMap(_ => Created())
         .handleErrorWith{
           case Ldap.BindFailure => BadRequest() 
