@@ -15,6 +15,9 @@ import _root_.io.circe._
 import _root_.io.circe.syntax._
 
 object ForgotPasswordService {
+
+  private val logger = org.log4s.getLogger
+
   def service[F[_]](implicit F: Effect[F], FP: ForgotPassword[F]): HttpService[F] = {
     val dsl = new Http4sDsl[F]{}
     import dsl._
@@ -30,7 +33,13 @@ object ForgotPasswordService {
       // Post Location Taking Email Address to Have Password Reset
       case req @ POST -> Root / "forgotpw" =>
         req.decodeJson[ForgotPasswordReceived]
-        .flatMap(fpr => ForgotPassword[F].initiatePasswordReset(fpr.username))
+        .flatMap{fpr => 
+          ForgotPassword[F].initiatePasswordReset(fpr.username)
+            .handleErrorWith(e => 
+              Sync[F].delay(logger.error(e)(s"Error in ForgotPassword Initiation ${fpr}")) *> 
+              Sync[F].raiseError[ForgotPasswordReturn](e)
+            )
+        }
         .flatMap(fpr => Created(fpr.asJson))
         .handleErrorWith{
           case SqlLiteDB.RateLimiteCheckFailed => BadRequest()
@@ -48,7 +57,13 @@ object ForgotPasswordService {
       // Post Location for the return page
       case req @ POST -> Root / "forgotpw" / randomExtension =>
         req.decodeJson[ForgotPasswordRecovery]
-        .flatMap(fpr => ForgotPassword[F].resetPassword(fpr.username, fpr.newPass, randomExtension))
+        .flatMap{fpr => 
+          ForgotPassword[F].resetPassword(fpr.username, fpr.newPass, randomExtension)
+            .handleErrorWith(e =>
+              Sync[F].delay(logger.error(e)(s"Error With Forgot Password Recovery for Username: ${fpr.username}")) *>
+              Sync[F].raiseError[Unit](e)
+            )
+        }
         .flatMap(_ => Created())
         .handleErrorWith{
           case SqlLiteDB.MissingRecoveryLink => BadRequest()
