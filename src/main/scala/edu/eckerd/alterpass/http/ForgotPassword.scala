@@ -40,7 +40,7 @@ object ForgotPassword {
       _ <- EmailService[F].sendNotificationEmail(personalEmails.toList.map(_.emailAddress), random)
       _ <- SqlLiteDB[F].writeConnection(username, personalEmails.head.emailCode, random, now)
       concealedAddresses = personalEmails.toList.map(_.emailAddress).map(concealEmail)
-      _ <- Sync[F].delay(logger.info(s"Forogot Password Reset Initiated For User: ${username}"))
+      _ <- Sync[F].delay(logger.info(s"Forgot Password Reset Initiated For User: ${username}"))
     } yield ForgotPasswordReturn(concealedAddresses)
 
     override def resetPassword(userName: String, newPass: String, extension: String): F[Unit] = {
