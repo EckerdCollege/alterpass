@@ -113,7 +113,7 @@
     
     function submitValue(username) {
         console.log(username);
-        var json = JSON.stringify({username : username});
+        var json = JSON.stringify({username : usernameLower});
         console.log(json);
         jQuery.ajax(
             {
@@ -153,6 +153,7 @@
         e.preventDefault();
 
         var username = $('input#username').val();
+        var usernameLower = username.toLowerCase();
 
         if(username == ""){
             alert("Please enter a Username");

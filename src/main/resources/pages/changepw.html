@@ -82,57 +82,11 @@ Account Settings > Change password <br><br>
     </div>
 </div>
 
-
-<!-- 
-<div class="container">
-<div class="box">
-	<div id="content"> 
-		<h3>Eckerd College Mailing Lists</h3>
-
-		<P>Welcome to the Eckerd managed mailing list server. If you are a mailing list subscriber, you can
-		access mailing lists, subscribe, on unsubscribe from lists. List administrators can access their
-		management portals.</p>
-
-		<H2 class="intro-text text-left">Mailman (@lists.eckerd.edu)</H2>
-		<P>
-		<ul>
-		<li><A HREF="/mailman/listinfo/">Mailing Lists</a></li>
-		<li><A HREF="/mailman/admin">List Administration</a></li>
-		</ul>
-		</p>
-
-		<H2 class="intro-text text-left">Other destinations</H2>
-
-		<P>
-		<ul>
-		<li><A HREF="http://groups.google.com/a/eckerd.edu">Google Groups</a> (new @eckerd.edu mailing lists)</li>
-		</ul>
-		</p>
-
-		<H2 class="intro-text text-left">Useful links:</H2>
-
-		<P>
-		<ul>
-
-		<li><A HREF="https://sites.google.com/a/eckerd.edu/its/home/its-help/about-google-apps-and-mailing-lists">About Google Apps and Mailing Lists</a></li>
-		<li><A HREF="https://sites.google.com/a/eckerd.edu/its/home/its-help/campus-wide-aliases">About Campus-Wide Mailing Lists</a></li>
-		<li><A HREF="https://sites.google.com/a/eckerd.edu/its/home/its-help/course-aliases">About Course Aliases</a></li>
-		</uL>
-		</p>
-
-	</div> </div> 
-</div> 
- -->
-
-<!-- /.container -->
-
-
 <footer>
     <div class="container">
         <div class="row" style="">
             <div class="col-lg-12 text-center">
                 <ul class="nav navbar-nav navbar-left">
-<!--                 <ul class="nav navbar-nav navbar-right"> -->
                 <li style=""><a href="https://www.eckerd.edu"><img src="../static/img/eckerd_logo-noBG.png"></a></li>
                 <li style="margin-top: 65px;"><a href="https://directory.apps2.eckerd.edu/">Directory</a></li>
                 <li style="margin-top: 65px;"><a href="https://www.eckerd.edu/about/directions/"style="">Directions & Map</a></li>
@@ -166,9 +120,7 @@ $(document).ready(function() {
   $("#newpassword2").keyup(validate);
   $("#newpassword1").keyup(validate);
   $("#newpassword2").keyup(strengthCheck);
-//   $("#newpassword1").keyup(strengthCheck)
   $("#newpassword2").keyup(lengthCheck);
-//   $("#newpassword1").keyup(lengthCheck);
 });
 
 var l;
@@ -212,9 +164,6 @@ function lengthCheck() {
 function strengthCheck() {
   var password1 = $("#newpassword1").val();
   var password2 = $("#newpassword2").val();
-//   var letters = /^[A-Za-z]+$/;
- //  var numbers = new RegExp('^[0-9]+$');
-//   var letterNumber = /^[0-9a-zA-Z]+$/; 
   var firstEight1 = password1.slice(0,8);
   var firstEight2 = password2.slice(0,8);
  
@@ -224,7 +173,6 @@ function strengthCheck() {
        	s = false;  
     }
 
-// 	if(!firstEight1.match(letters) || !firstEight2.match(letters)) {
 	else if (firstEight1.search(/[a-zA-Z]/) == -1 || firstEight2.search(/[a-zA-Z]/) == -1) {
        $("#strength").text("Strength requirements not met");      
        	s = false;    
@@ -250,10 +198,6 @@ function strengthCheck() {
         s = true;
            
     }
-    
-    //   else if(password1==null || password1=="",password2==null || password2=="") {
-//     	$("#validate").text(""); 
-//     }
     
 }
 
@@ -292,7 +236,6 @@ e.preventDefault();
   
    if (newpass1 != newpass2) {
    Replace('goodresult', '')
-//    Replace('badresult', x.substr(x.lastIndexOf('/') + 1))
    Replace('badresult', 'New passwords don\'t match; please make sure they match before continuing.')
      document.getElementById("newpassword1").style.borderColor = "#E34234";
         document.getElementById("newpassword2").style.borderColor = "#E34234";
@@ -333,7 +276,7 @@ e.preventDefault();
                    					 Replace('badresult', 'There was an internal server error.  Please try again later.');
    											     },
   
-                				200: function(data) {
+                				201: function(data) {
 
                     				$( '#change' ).each(function(){
   									  this.reset();
