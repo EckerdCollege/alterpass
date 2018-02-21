@@ -40,6 +40,7 @@ object ForgotPassword {
       _ <- EmailService[F].sendNotificationEmail(personalEmails.toList.map(_.emailAddress), random)
       _ <- SqlLiteDB[F].writeConnection(username, personalEmails.head.emailCode, random, now)
       concealedAddresses = personalEmails.toList.map(_.emailAddress).map(concealEmail)
+      _ <- Sync[F].delay(logger.info(s"Forogot Password Reset Initiated For User: ${username}"))
     } yield ForgotPasswordReturn(concealedAddresses)
 
     override def resetPassword(userName: String, newPass: String, extension: String): F[Unit] = {
@@ -54,6 +55,7 @@ object ForgotPassword {
         _ <- if (user.emailCode != EmailCode.ECA) AgingFile[F].writeUsernamePass(ldapUserName, newPass) else ().pure[F]
         _ <- GoogleAPI[F].changePassword(googleUserName, newPass)
         out <- SqlLiteDB[F].removeRecoveryLink(userName, extension).void
+        _ <- Sync[F].delay(logger.info(s"Forgot Password Reset Completed for User: ${userName}"))
       } yield out
     }
 

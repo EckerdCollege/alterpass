@@ -26,7 +26,7 @@ object ChangePassword {
             _ <- AgingFile[F].writeUsernamePass(ldapUserName, newPass)
             _ <- Ldap[F].setUserPassword(ldapUserName, newPass)
             _ <- GoogleAPI[F].changePassword(googleUserName, newPass)
-            out <- Sync[F].delay(logger.debug(s"Password Changed For $username"))
+            out <- Sync[F].delay(logger.info(s"Password Changed For $username"))
           } yield out
         },
         Sync[F].delay(logger.info(s"Failed Change Password Attempt - Invalid Old Password for $username")) *>
