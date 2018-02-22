@@ -109,12 +109,11 @@
                 container.innerHTML = content;	
             }
             
-        var username = $('input#username').val();
-        var usernameLower = username.toLowerCase();
+    
     
     function submitValue(username) {
         console.log(username);
-        var json = JSON.stringify({username : usernameLower});
+        var json = JSON.stringify({username : username});
         console.log(json);
         jQuery.ajax(
             {
@@ -153,6 +152,7 @@
     $('button').on('click', function (e) {
         e.preventDefault();
 
+        var username = $('input#username').val();
 
         if(username == ""){
             alert("Please enter a Username");
@@ -168,7 +168,7 @@
 }
         
       else if(username != '' && !username.indexOf('@') > -1) {
-            submitValue(usernameLower);
+            submitValue(username);
         }
 
 
