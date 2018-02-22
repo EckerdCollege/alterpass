@@ -109,7 +109,8 @@
                 container.innerHTML = content;	
             }
             
-    
+        var username = $('input#username').val();
+        var usernameLower = username.toLowerCase();
     
     function submitValue(username) {
         console.log(username);
@@ -152,8 +153,6 @@
     $('button').on('click', function (e) {
         e.preventDefault();
 
-        var username = $('input#username').val();
-        var usernameLower = username.toLowerCase();
 
         if(username == ""){
             alert("Please enter a Username");
@@ -169,7 +168,7 @@
 }
         
       else if(username != '' && !username.indexOf('@') > -1) {
-            submitValue(username);
+            submitValue(usernameLower);
         }
 
 
