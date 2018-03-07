@@ -8,6 +8,7 @@ import org.http4s.circe._
 import org.http4s.dsl._ 
 import edu.eckerd.alterpass.models._
 import edu.eckerd.alterpass.ldap._
+import edu.eckerd.alterpass.rules._
 import org.http4s.CacheDirective.`no-cache`
 import org.http4s.headers.`Cache-Control`
 import _root_.io.circe._
@@ -38,10 +39,12 @@ object ChangePasswordService{
         )
         .flatMap(_ => Created())
         .handleErrorWith{
-          case Ldap.BindFailure => BadRequest() 
-          case DecodingFailure(_,_) => BadRequest()
+          case Ldap.BindFailure => BadRequest()
+          case DecodingFailure(_,_) => BadRequest(ErrorResponse(400, NonEmptyList.of("Invalid Json")))
+          case PasswordRules.ValidationFailure(nel) => BadRequest(ErrorResponse(400, nel))
           case _ => InternalServerError()
         }
+
     }
   }
 }

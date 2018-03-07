@@ -8,6 +8,7 @@ import org.http4s.circe._
 import org.http4s.dsl._ 
 import edu.eckerd.alterpass.models._
 import edu.eckerd.alterpass.ldap._
+import edu.eckerd.alterpass.rules._
 import edu.eckerd.alterpass.database._
 import org.http4s.CacheDirective.`no-cache`
 import org.http4s.headers.`Cache-Control`
@@ -67,6 +68,7 @@ object ForgotPasswordService {
         .flatMap(_ => Created())
         .handleErrorWith{
           case SqlLiteDB.MissingRecoveryLink => BadRequest()
+          case PasswordRules.ValidationFailure(nel) => BadRequest(ErrorResponse(400, nel))
           case _ => InternalServerError()
         }
     }
