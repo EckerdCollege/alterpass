@@ -31,31 +31,36 @@ object ForgotPassword {
     E: EmailService[F]
   ): ForgotPassword[F] = new ForgotPassword[F] {
 
-    override def initiatePasswordReset(username: String): F[ForgotPasswordReturn] = for {
-      now <- Sync[F].delay(Instant.now().getEpochSecond)
-      _ <- SqlLiteDB[F].rateLimitCheck(username, now)
-      _ <- SqlLiteDB[F].removeOlder(now)
-      personalEmails <-OracleDB[F].getPersonalEmails(username)
-      random <- Sync[F].delay(randomAlphaNumeric(40))
-      _ <- EmailService[F].sendNotificationEmail(personalEmails.toList.map(_.emailAddress), random)
-      _ <- SqlLiteDB[F].writeConnection(username, personalEmails.head.emailCode, random, now)
-      concealedAddresses = personalEmails.toList.map(_.emailAddress).map(concealEmail)
-      _ <- Sync[F].delay(logger.info(s"Forgot Password Reset Initiated For User: ${username}"))
-    } yield ForgotPasswordReturn(concealedAddresses)
+    override def initiatePasswordReset(username: String): F[ForgotPasswordReturn] = {
+      val lowerCaseUsername = username.toLowerCase
+      val ldapUserName = lowerCaseUsername.replaceAll("@eckerd.edu", "")
+      val googleUserName = if (lowerCaseUsername.endsWith("@eckerd.edu")) lowerCaseUsername else s"${lowerCaseUsername}@eckerd.edu"
+      for {
+        now <- Sync[F].delay(Instant.now().getEpochSecond)
+        _ <- SqlLiteDB[F].rateLimitCheck(ldapUserName, now)
+        _ <- SqlLiteDB[F].removeOlder(now)
+        personalEmails <-OracleDB[F].getPersonalEmails(ldapUserName)
+        random <- Sync[F].delay(randomAlphaNumeric(40))
+        _ <- EmailService[F].sendNotificationEmail(personalEmails.toList.map(_.emailAddress), random)
+        _ <- SqlLiteDB[F].writeConnection(ldapUserName, personalEmails.head.emailCode, random, now)
+        concealedAddresses = personalEmails.toList.map(_.emailAddress).map(concealEmail)
+        _ <- Sync[F].delay(logger.info(s"Forgot Password Reset Initiated For User: ${ldapUserName}"))
+      } yield ForgotPasswordReturn(concealedAddresses)
+    }
 
     override def resetPassword(userName: String, newPass: String, extension: String): F[Unit] = {
-      val ldapUserName = userName.replaceAll("@eckerd.edu", "")
-      val googleUserName = if (userName.endsWith("@eckerd.edu")) userName else s"${userName}@eckerd.edu"
-
+      val lowerCaseUsername = userName.toLowerCase
+      val ldapUserName = lowerCaseUsername.replaceAll("@eckerd.edu", "")
+      val googleUserName = if (lowerCaseUsername.endsWith("@eckerd.edu")) lowerCaseUsername else s"${lowerCaseUsername}@eckerd.edu"
       for {
         now <- Sync[F].delay(Instant.now().getEpochSecond) 
         _ <- SqlLiteDB[F].removeOlder(now)
-        user <- SqlLiteDB[F].recoveryLink(userName, extension, now)
+        user <- SqlLiteDB[F].recoveryLink(ldapUserName, extension, now)
         _ <- if (user.emailCode != EmailCode.ECA) Ldap[F].setUserPassword(ldapUserName, newPass) else ().pure[F]
         _ <- if (user.emailCode != EmailCode.ECA) AgingFile[F].writeUsernamePass(ldapUserName, newPass) else ().pure[F]
         _ <- GoogleAPI[F].changePassword(googleUserName, newPass)
-        out <- SqlLiteDB[F].removeRecoveryLink(userName, extension).void
-        _ <- Sync[F].delay(logger.info(s"Forgot Password Reset Completed for User: ${userName}"))
+        out <- SqlLiteDB[F].removeRecoveryLink(ldapUserName, extension).void
+        _ <- Sync[F].delay(logger.info(s"Forgot Password Reset Completed for User: ${ldapUserName}"))
       } yield out
     }
 
