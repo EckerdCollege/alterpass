@@ -6,6 +6,7 @@ import edu.eckerd.alterpass.database.{OracleDB, SqlLiteDB}
 import edu.eckerd.alterpass.google.GoogleAPI
 import edu.eckerd.alterpass.http._
 import edu.eckerd.alterpass.ldap.Ldap
+import edu.eckerd.alterpass.rules.PasswordRules
 import fs2._
 import org.http4s.server.blaze.BlazeBuilder
 import edu.eckerd.alterpass.email.EmailService
@@ -25,8 +26,10 @@ object AlterPassServer {
     googleApi <- GoogleAPI.impl[F](appConfig.googleConfig)
     ldap <- Ldap.impl[F](appConfig.ldapConfig)
 
-    cp = ChangePassword.impl(F, ldap, agingFile, googleApi)
-    fp = ForgotPassword.impl(F, ldap, agingFile, googleApi, oracleDb, sqlLite, emailService)
+    passRules = PasswordRules.impl[F]
+
+    cp = ChangePassword.impl(F, ldap, agingFile, googleApi, passRules)
+    fp = ForgotPassword.impl(F, ldap, agingFile, googleApi, oracleDb, sqlLite, emailService, passRules)
     
     staticService = StaticSite.service[F]
     cpService = ChangePasswordService.service(F, cp)
