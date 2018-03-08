@@ -60,10 +60,14 @@ object ForgotPasswordService {
         req.decodeJson[ForgotPasswordRecovery]
         .flatMap{fpr => 
           ForgotPassword[F].resetPassword(fpr.username, fpr.newPass, randomExtension)
-            .handleErrorWith(e =>
+            .handleErrorWith{
+              case e@PasswordRules.ValidationFailure(nel) =>
+                Sync[F].delay(logger.info(s"Invalid Password Provided By User: ${fpr.username} - Rules Broken: ${nel}")) *>
+                  Sync[F].raiseError[Unit](e)
+              case e => 
               Sync[F].delay(logger.error(e)(s"Error With Forgot Password Recovery for Username: ${fpr.username}")) *>
-              Sync[F].raiseError[Unit](e)
-            )
+                Sync[F].raiseError[Unit](e)
+            }
         }
         .flatMap(_ => Created())
         .handleErrorWith{

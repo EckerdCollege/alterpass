@@ -32,10 +32,14 @@ object ChangePasswordService{
         req.decodeJson[ChangePasswordReceived]
         .flatMap(cpw => 
           ChangePassword[F].changePassword(cpw.username, cpw.oldPass, cpw.newPass)
-            .handleErrorWith(e => 
+            .handleErrorWith{
+              case e@PasswordRules.ValidationFailure(nel) => 
+                Sync[F].delay(logger.info(s"Invalid Password Provided By User: ${cpw.username} - Rules Broken: ${nel}")) *>
+                  Sync[F].raiseError[Unit](e)
+              case e => 
               Sync[F].delay(logger.error(e)(s"Error With Change Password for ${cpw.username}")) *> 
               Sync[F].raiseError[Unit](e)
-            )
+            }
         )
         .flatMap(_ => Created())
         .handleErrorWith{

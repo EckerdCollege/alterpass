@@ -3,7 +3,7 @@ package edu.eckerd.alterpass.rules
 import cats.data._
 import cats.effect._
 import cats.implicits._
-
+import scala.util.control.NoStackTrace
 
 trait PasswordRules[F[_]]{
   def validate(password: String): F[Unit]
@@ -39,5 +39,7 @@ object PasswordRules {
     Validated.condNel[String, Unit](!s.contains(":"), (), "Contains Invalid Character: ':'")
   ).mapN((_, _, _) => ())
 
-  case class ValidationFailure(failures: NonEmptyList[String]) extends Throwable
+  case class ValidationFailure(failures: NonEmptyList[String]) extends Throwable with NoStackTrace {
+    def getMesssage(): String = show"Password Validation Failure - $failures"
+  }
 }
