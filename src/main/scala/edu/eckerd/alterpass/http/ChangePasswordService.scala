@@ -8,6 +8,7 @@ import org.http4s.circe._
 import org.http4s.dsl._ 
 import edu.eckerd.alterpass.models._
 import edu.eckerd.alterpass.ldap._
+import edu.eckerd.alterpass.rules._
 import org.http4s.CacheDirective.`no-cache`
 import org.http4s.headers.`Cache-Control`
 import _root_.io.circe._
@@ -31,17 +32,23 @@ object ChangePasswordService{
         req.decodeJson[ChangePasswordReceived]
         .flatMap(cpw => 
           ChangePassword[F].changePassword(cpw.username, cpw.oldPass, cpw.newPass)
-            .handleErrorWith(e => 
+            .handleErrorWith{
+              case e@PasswordRules.ValidationFailure(nel) => 
+                Sync[F].delay(logger.info(s"Invalid Password Provided By User: ${cpw.username} - Rules Broken: ${nel}")) *>
+                  Sync[F].raiseError[Unit](e)
+              case e => 
               Sync[F].delay(logger.error(e)(s"Error With Change Password for ${cpw.username}")) *> 
               Sync[F].raiseError[Unit](e)
-            )
+            }
         )
         .flatMap(_ => Created())
         .handleErrorWith{
-          case Ldap.BindFailure => BadRequest() 
-          case DecodingFailure(_,_) => BadRequest()
+          case Ldap.BindFailure => BadRequest()
+          case DecodingFailure(_,_) => BadRequest(ErrorResponse(400, NonEmptyList.of("Invalid Json")))
+          case PasswordRules.ValidationFailure(nel) => BadRequest(ErrorResponse(400, nel))
           case _ => InternalServerError()
         }
+
     }
   }
 }

@@ -8,6 +8,7 @@ import org.http4s.circe._
 import org.http4s.dsl._ 
 import edu.eckerd.alterpass.models._
 import edu.eckerd.alterpass.ldap._
+import edu.eckerd.alterpass.rules._
 import edu.eckerd.alterpass.database._
 import org.http4s.CacheDirective.`no-cache`
 import org.http4s.headers.`Cache-Control`
@@ -59,14 +60,19 @@ object ForgotPasswordService {
         req.decodeJson[ForgotPasswordRecovery]
         .flatMap{fpr => 
           ForgotPassword[F].resetPassword(fpr.username, fpr.newPass, randomExtension)
-            .handleErrorWith(e =>
+            .handleErrorWith{
+              case e@PasswordRules.ValidationFailure(nel) =>
+                Sync[F].delay(logger.info(s"Invalid Password Provided By User: ${fpr.username} - Rules Broken: ${nel}")) *>
+                  Sync[F].raiseError[Unit](e)
+              case e => 
               Sync[F].delay(logger.error(e)(s"Error With Forgot Password Recovery for Username: ${fpr.username}")) *>
-              Sync[F].raiseError[Unit](e)
-            )
+                Sync[F].raiseError[Unit](e)
+            }
         }
         .flatMap(_ => Created())
         .handleErrorWith{
           case SqlLiteDB.MissingRecoveryLink => BadRequest()
+          case PasswordRules.ValidationFailure(nel) => BadRequest(ErrorResponse(400, nel))
           case _ => InternalServerError()
         }
     }

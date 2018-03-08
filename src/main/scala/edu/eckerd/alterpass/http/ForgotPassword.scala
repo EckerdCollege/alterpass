@@ -7,6 +7,7 @@ import edu.eckerd.alterpass.email._
 import edu.eckerd.alterpass.ldap._
 import edu.eckerd.alterpass.google._
 import edu.eckerd.alterpass.models._
+import edu.eckerd.alterpass.rules._
 import cats._
 import cats.implicits._
 import java.time.Instant
@@ -28,7 +29,8 @@ object ForgotPassword {
     G: GoogleAPI[F],
     O: OracleDB[F],
     S: SqlLiteDB[F],
-    E: EmailService[F]
+    E: EmailService[F],
+    P: PasswordRules[F]
   ): ForgotPassword[F] = new ForgotPassword[F] {
 
     override def initiatePasswordReset(username: String): F[ForgotPasswordReturn] = {
@@ -53,6 +55,7 @@ object ForgotPassword {
       val ldapUserName = lowerCaseUsername.replaceAll("@eckerd.edu", "")
       val googleUserName = if (lowerCaseUsername.endsWith("@eckerd.edu")) lowerCaseUsername else s"${lowerCaseUsername}@eckerd.edu"
       for {
+        _ <- PasswordRules[F].validate(newPass)
         now <- Sync[F].delay(Instant.now().getEpochSecond) 
         _ <- SqlLiteDB[F].removeOlder(now)
         user <- SqlLiteDB[F].recoveryLink(ldapUserName, extension, now)
