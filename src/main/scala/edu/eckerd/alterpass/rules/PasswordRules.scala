@@ -25,7 +25,7 @@ object PasswordRules {
   }
 
   def atleastEightCharsLong(s: String): ValidatedNel[String, Unit] = 
-    Validated.condNel[String, Unit](s.length > 0, (), s"Password Too Short, Length:${s.length}")
+    Validated.condNel[String, Unit](s.length >= 8, (), s"Password Too Short, Length:${s.length}")
 
   def numberInFirstEightChars(s: String): ValidatedNel[String, Unit] =
     Validated.condNel[String, Unit](s.take(8).matches(".*\\d+.*"), (), "No Number in First 8 Characters")
