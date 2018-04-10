@@ -22,9 +22,8 @@ object ForgotPassword {
 
   private val logger = org.log4s.getLogger
 
-  def impl[F[_]](
+  def impl[F[_]](activeDirectory: Ldap[F], ldap: Ldap[F])(
     implicit F: Effect[F], 
-    L: Ldap[F], 
     A: AgingFile[F],
     G: GoogleAPI[F],
     O: OracleDB[F],
@@ -59,7 +58,8 @@ object ForgotPassword {
         now <- Sync[F].delay(Instant.now().getEpochSecond) 
         _ <- SqlLiteDB[F].removeOlder(now)
         user <- SqlLiteDB[F].recoveryLink(ldapUserName, extension, now)
-        _ <- if (user.emailCode != EmailCode.ECA) Ldap[F].setUserPassword(ldapUserName, newPass) else ().pure[F]
+        _ <- if (user.emailCode != EmailCode.ECA) ldap.setUserPassword(ldapUserName, newPass) else ().pure[F]
+        _ <- if (user.emailCode != EmailCode.ECA) activeDirectory.setUserPassword(ldapUserName, newPass) else ().pure[F]
         _ <- if (user.emailCode != EmailCode.ECA) AgingFile[F].writeUsernamePass(ldapUserName, newPass) else ().pure[F]
         _ <- GoogleAPI[F].changePassword(googleUserName, newPass)
         out <- SqlLiteDB[F].removeRecoveryLink(ldapUserName, extension).void
