@@ -9,6 +9,7 @@ object Configuration {
                               sqlLiteConfig: SqlLiteConfig,
                               agingFileConfig: AgingFileConfig,
                               ldapConfig: LdapConfig,
+                              activeDirectoryConfig: LdapConfig,
                               emailConfig: EmailConfig
                               )
 
@@ -38,6 +39,7 @@ object Configuration {
   case class LdapConfig(
                        enabled: Boolean,
                        host: String,
+                       activeDirectory: Boolean,
                        baseDN: String,
                        searchAttribute: String,
                        user: String,

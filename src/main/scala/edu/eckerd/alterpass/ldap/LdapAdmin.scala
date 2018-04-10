@@ -3,16 +3,17 @@ package edu.eckerd.alterpass.ldap
 import com.unboundid.ldap.sdk._
 import com.unboundid.util.ssl.{SSLUtil, TrustAllTrustManager}
 import cats.effect._
+import edu.eckerd.alterpass.models.{EncryptedString, PasswordEncryptor}
 import cats.implicits._
 
 private[ldap] case class LdapAdmin(
-                 ldapProtocol: String,
-                 ldapHost: String,
-                 ldapPort: Int,
-                 userBaseDN: String,
-                 searchAttribute: String,
-                 bindDN: String,
-                 bindPass: String
+                ldapProtocol: String,
+                ldapHost: String,
+                ldapPort: Int,
+                userBaseDN: String,
+                searchAttribute: String,
+                bindDN: String,
+                bindPass: EncryptedString
           ) {
   val poolSize = 5
 
@@ -31,9 +32,9 @@ private[ldap] case class LdapAdmin(
   // Initialize Multi-Server LDAP Connection Pool
   val connectionPool : LDAPConnectionPool = ldapProtocol match {
     case "ldaps" =>
-      new LDAPConnectionPool(new FailoverServerSet(serverAddresses, serverPorts,new SSLUtil(trustManager).createSSLSocketFactory()),new SimpleBindRequest(bindDN, bindPass), poolSize)
+      new LDAPConnectionPool(new FailoverServerSet(serverAddresses, serverPorts,new SSLUtil(trustManager).createSSLSocketFactory()),new SimpleBindRequest(bindDN, bindPass.value), poolSize)
     case "ldap" =>
-      new LDAPConnectionPool(new FailoverServerSet(serverAddresses, serverPorts),new SimpleBindRequest(bindDN, bindPass), poolSize)
+      new LDAPConnectionPool(new FailoverServerSet(serverAddresses, serverPorts),new SimpleBindRequest(bindDN, bindPass.value), poolSize)
     case _ =>
       null
   }
@@ -55,11 +56,11 @@ private[ldap] case class LdapAdmin(
     entries.headOption.map(_.getDN)
 
 
-  def bind[F[_]: Sync](uid: String, pass:String): F[Int] = {
+  def bind[F[_]: Sync](uid: String, pass: EncryptedString): F[Int] = {
     val userDNT = search(uid).map(getFirstDN)
     userDNT.flatMap{
       case Some(dn) =>
-        val bindRequest = new SimpleBindRequest(dn, pass)
+        val bindRequest = new SimpleBindRequest(dn, pass.value)
         Sync[F].delay(
           connectionPool
             .bindAndRevertAuthentication(bindRequest)
@@ -72,7 +73,7 @@ private[ldap] case class LdapAdmin(
     }
   }
 
-  def checkBind[F[_]: Sync](uid:String,pass:String) : F[Boolean] = {
+  def checkBind[F[_]: Sync](uid:String,pass: EncryptedString) : F[Boolean] = {
     bind[F](uid, pass).map {
       case 0 => true
       case _ => false
@@ -82,18 +83,22 @@ private[ldap] case class LdapAdmin(
   def getUserDN[F[_]: Sync](uid: String): F[Option[String]] = search[F](uid).map(getFirstDN)
 
 
-  def setUserPassword[F[_]: Sync](uid: String, newPass: String): F[Int] = {
+  def setUserPassword[F[_]: Sync](activeDirectory: Boolean, uid: String, newPass: EncryptedString): F[Int] = {
     val userDNOpt: F[Option[String]] = getUserDN[F](uid)
-    val modification = new Modification(ModificationType.REPLACE, "userPassword", newPass)
+    val modification = if (activeDirectory){
+      new Modification(ModificationType.REPLACE, "unicodePwd", newPass.value)
+    } else {
+      new Modification(ModificationType.REPLACE, "userPassword", newPass.value)
+    }
     val changePassword : Option[String] => F[Option[LDAPResult]] =
       userDN => Sync[F].delay(userDN.map(dn => connectionPool.modify(dn, modification)))
     val result = userDNOpt.flatMap(changePassword)
     result.map(_.map(_.getResultCode.intValue).getOrElse(1))
   }
 
-  def changeUserPassword[F[_]: Sync](uid: String, oldPass: String, newPass: String): F[Int] = {
+  def changeUserPassword[F[_]: Sync](activeDirectory: Boolean, uid: String, oldPass: EncryptedString, newPass: EncryptedString): F[Int] = {
     checkBind[F](uid, oldPass).flatMap{
-      case true => setUserPassword(uid, newPass)
+      case true => setUserPassword(activeDirectory, uid, newPass)
       case false => Sync[F].pure(1)
     }
   }

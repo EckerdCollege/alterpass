@@ -25,12 +25,12 @@ object AlterPassServer {
     emailService <- EmailService.impl[F](appConfig.emailConfig)
     googleApi <- GoogleAPI.impl[F](appConfig.googleConfig)
     ldap <- Ldap.impl[F](appConfig.ldapConfig)
+    activeDirectory <- Ldap.impl[F](appConfig.activeDirectoryConfig)
 
     passRules = PasswordRules.impl[F]
 
-    cp = ChangePassword.impl(F, ldap, agingFile, googleApi, passRules)
-    fp = ForgotPassword.impl(F, ldap, agingFile, googleApi, oracleDb, sqlLite, emailService, passRules)
-    
+    cp = ChangePassword.impl(activeDirectory, ldap)(F,agingFile, googleApi, passRules)
+    fp = ForgotPassword.impl(activeDirectory, ldap)(F, agingFile, googleApi, oracleDb, sqlLite, emailService, passRules)
     staticService = StaticSite.service[F]
     cpService = ChangePasswordService.service(F, cp)
     fpService = ForgotPasswordService.service(F, fp)

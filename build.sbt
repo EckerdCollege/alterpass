@@ -4,9 +4,9 @@ version := "0.1.0-SNAPSHOT"
 scalaVersion := "2.12.4"
 
 
-val Http4sVersion = "0.18.0"
-val CirceVersion = "0.9.1"
-val DoobieVersion = "0.5.0"
+val Http4sVersion = "0.18.7"
+val CirceVersion = "0.9.3"
+val DoobieVersion = "0.5.2"
 
 resolvers += Resolver.sonatypeRepo("releases")
 resolvers += Resolver.sonatypeRepo("snapshots")
@@ -32,7 +32,7 @@ libraryDependencies ++= Seq(
   "com.unboundid"   %  "unboundid-ldapsdk"    % "4.0.0",
   "javax.mail"      % "javax.mail-api"        % "1.5.6",
   "com.sun.mail"    % "javax.mail"            % "1.5.2",
-  "org.specs2"      %% "specs2-core"          % "3.9.1"         % Test,
+  "org.specs2"      %% "specs2-core"          % "4.0.3"         % Test,
   "org.http4s"      %% "http4s-testing"       % Http4sVersion   % Test,
   "org.tpolecat"    %% "doobie-specs2"        % DoobieVersion   % Test
 
